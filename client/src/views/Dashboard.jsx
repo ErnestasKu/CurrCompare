@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import currencyList from "../utilities/currencyList";
 import DropdownCurrency from "./general/DropdownCurrency";
 import {
@@ -10,9 +10,12 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import CurrencyService from "../services/CurrencyService";
 
 export default function Dashboard({}) {
   const [selectedCurency, setSelectedCurency] = useState();
+  const [startDate, setStartDate] = useState();
+  const [endDate, setEndDate] = useState();
   function handleSelect(item) {
     setSelectedCurency(item);
   }
@@ -58,10 +61,44 @@ export default function Dashboard({}) {
     rate,
   }));
 
+  useEffect(() => {
+    async function GetCurr() {
+      const cs = new CurrencyService();
+      const data = await cs.getCurrencies();
+
+      let obj = {};
+      data.CcyTbl.CcyNtry.forEach((cur) => {
+        obj[cur.Ccy] = {
+          name_en: cur.CcyNm.find((n) => n["@lang"] === "EN")["#text"],
+          name_lt: cur.CcyNm.find((n) => n["@lang"] === "LT")["#text"],
+          numeric_code: cur.CcyNbr,
+          minor_units: cur.CcyMnrUnts,
+        };
+      });
+      console.log(JSON.stringify(obj, null, 2));
+    }
+    // GetCurr();
+    async function GetHistorical() {
+      const cs = new CurrencyService();
+      const data = await cs.getCurrencyHistorical(
+        selectedCurency,
+        // new Date(),
+        // new Date(),
+        "2026-03-25",
+        "2026-03-27",
+      );
+      console.log("AAAAAA");
+      // console.log(selectedCurency);
+      console.log(data);
+    }
+
+    if (selectedCurency) GetHistorical();
+  }, [selectedCurency]);
+
   // const data = [1, 5, 6, 4, 1];
   return (
     <div className="bg-red-950 p-8 md:max-w-[80%] mx-auto">
-      <div className="w-full h-50">
+      {/* <div className="w-full h-50">
         <ResponsiveContainer>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -76,7 +113,7 @@ export default function Dashboard({}) {
             />
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      </div> */}
 
       <div>Select currency</div>
       <div className="w-64">

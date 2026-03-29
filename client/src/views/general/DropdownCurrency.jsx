@@ -19,12 +19,9 @@ export default function DropdownCurrency({
         className="w-full p-2 bg-bg-lighter flex items-center"
         onClick={() => setOpen(!open)}
       >
-        {/* {selected === undefined || selected == null
+        {selected === undefined || selected == null
           ? ""
-          : valueBased
-            ? selected
-            : data[selected]} */}
-        {selected === undefined || selected == null ? "" : selected.name}
+          : data[selected].name_en}
 
         <RiArrowDropDownLine
           className={`text-2xl ml-auto transform transition-transform duration-200 ${open ? "rotate-180" : ""}`}
@@ -38,12 +35,11 @@ export default function DropdownCurrency({
           rounded-xl shadow-2xl border border-bg-lighter3/20 bg-bg-lighter divide-y divide-bg-lighter3/20
           overflow-hidden h-42 overflow-y-scroll z-1"
         >
-          {data.map((item, index) => (
+          {Object.entries(data).map(([key, item], index) => (
             <button
               key={index}
               onClick={() => {
-                // valueBased ? setSelected(item) : setSelected(index);
-                setSelected(item);
+                setSelected(key);
                 setOpen(false);
               }}
               className={`
@@ -51,9 +47,9 @@ export default function DropdownCurrency({
               hover:bg-primary hover:text-bg-main
               disabled:bg-bg-lighter disabled:text-bg-lighter2 
               ${index === selected ? "text-primary font-semibold" : ""} `}
-              disabled={item === disabled}
+              disabled={index === disabled}
             >
-              {`${item.name}`}
+              {`${item.name_en}`}
             </button>
           ))}
         </div>
