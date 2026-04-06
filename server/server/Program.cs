@@ -14,9 +14,14 @@ builder.Services.AddCors(options =>
         });
 });
 
-builder.Services.AddHttpClient("BankOfLithuania", client =>
+//builder.Services.AddHttpClient("BankOfLithuania", client =>
+//{
+//    client.BaseAddress = new Uri("https://www.lb.lt/webservices/fxrates/fxrates.asmx/");
+//    client.DefaultRequestHeaders.Add("Accept", "application/json");
+//});
+builder.Services.AddHttpClient("Frankfurter", client =>
 {
-    client.BaseAddress = new Uri("https://www.lb.lt/webservices/fxrates/fxrates.asmx/");
+    client.BaseAddress = new Uri("https://api.frankfurter.dev/v2/");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
 
