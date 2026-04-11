@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 // import reactLogo from './assets/react.svg'
 // import viteLogo from './assets/vite.svg'
 // import heroImg from './assets/hero.png'
@@ -20,7 +20,7 @@ function App() {
 
   return (
     <div className={"flex flex-col h-screen border"}>
-      <Header />
+      <Header activeScreen={activeScreen} setActiveScreen={setActiveScreen} />
       <div className="flex-1 overflow-auto min-h-0">
         {renderSwitch(activeScreen)}
       </div>
