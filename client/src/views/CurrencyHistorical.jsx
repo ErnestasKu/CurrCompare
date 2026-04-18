@@ -43,6 +43,7 @@ export default function CurrencyHistorical({ selectedCurrency, currencyData }) {
               tick={{ fill: "#94a3b8", fontSize: 12 }}
               minTickGap={30}
               dy={10}
+              interval={"preserveStartEnd"}
             />
 
             <YAxis

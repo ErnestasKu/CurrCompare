@@ -18,6 +18,8 @@ export default function Dashboard({}) {
     "USD",
     "GBP",
     "JPY",
+    "CHF",
+    "XAU",
   ]);
   const [currencyData, setCurrencyData] = useState();
 
@@ -44,14 +46,14 @@ export default function Dashboard({}) {
   useEffect(() => {
     async function GetHistorical() {
       const today = format(new Date(), "yyyy-MM-dd");
-      const lastWeek = format(subDays(today, 6), "yyyy-MM-dd");
+      const startDate = format(subDays(today, 30), "yyyy-MM-dd");
       const currencyString = selectedCurrencies.join(",");
 
       const cs = new CurrencyService();
       const data = await cs.getCurrencyHistorical(
         baseCurrency,
         currencyString,
-        lastWeek,
+        startDate,
         today,
       );
       setCurrencyData(data);
@@ -61,10 +63,12 @@ export default function Dashboard({}) {
   }, [baseCurrency, selectedCurrencies]);
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6 min-h-screen">
+    <div className="page-default space-y-6">
+      <div className="page-title">Market Rate Comparison</div>
+
       <div className="bubble flex justify-between">
         <div>
-          <div className="mb-2 uppercase tracking-wider">Base currency</div>
+          <div className="page-label">Base currency</div>
 
           <div className="w-64">
             <DropdownCurrency
@@ -75,15 +79,11 @@ export default function Dashboard({}) {
           </div>
         </div>
 
-        <div>
-          <div className="mb-2 text-2xl font-semibold">Add currency</div>
-
+        <div className="flex items-center">
           <div className="w-64">
             <DropdownCurrency
               data={currencyList.currencies}
-              selected={null}
               setSelected={handleAddCurrency}
-              disabled={baseCurrency}
             />
           </div>
         </div>
@@ -97,7 +97,7 @@ export default function Dashboard({}) {
 
           return (
             <div key={index} className="bubble flex gap-4 ">
-              <div className="flex flex-col h-full w-[50%] min-w-0">
+              <div className="flex flex-col h-full w-2/5 min-w-0">
                 <div className="flex justify-between">
                   <button
                     className="text-txt-main hover:text-bad text-2xl w-fit rounded-2xl p-2 hover:bg-bad/10 transition"
@@ -118,10 +118,17 @@ export default function Dashboard({}) {
                       {currencyList.currencies?.[code]?.name || "Currency"}
                     </p>
                     <span className="text-2xl lg:text-3xl xl:text-4xl font-semibold mb-4 font-mono">
-                      {currencyList.currencies?.[code] && filteredData[0]?.rate
-                        ? currencyList.currencies[code].symbol +
-                          filteredData[0]?.rate
-                        : "..."}
+                      {currencyList.currencies?.[code] &&
+                      filteredData[0]?.rate ? (
+                        <>
+                          <span className="text-primary">
+                            {currencyList.currencies[code].symbol}
+                          </span>
+                          {filteredData[0]?.rate}
+                        </>
+                      ) : (
+                        "..."
+                      )}
                     </span>
                   </div>
 
@@ -132,11 +139,12 @@ export default function Dashboard({}) {
                   />
                 </div>
               </div>
-
-              <CurrencyHistorical
-                selectedCurrency={code}
-                currencyData={filteredData}
-              />
+              <div className="flex-1">
+                <CurrencyHistorical
+                  selectedCurrency={code}
+                  currencyData={filteredData}
+                />
+              </div>
             </div>
           );
         })}
