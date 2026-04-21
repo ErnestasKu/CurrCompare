@@ -25,10 +25,10 @@ export default function DropdownCurrency({
       {selected ? (
         <button
           className={`
-        w-full px-4 py-2
-        flex items-center justify-between
-        bg-bg-lighter border transition duration-200 rounded-xl
-        ${open ? "border-primary" : "border-bg-border"}     text-left`}
+            page-select-field
+            flex items-center justify-between
+            
+        ${open ? "border-primary" : ""}`}
           onClick={() => setOpen(!open)}
         >
           <span className="truncate">
@@ -49,11 +49,7 @@ export default function DropdownCurrency({
             text-2xl hover:text-primary
             rounded-xl border
             transition duration-200
-            ${
-              open
-                ? "border-primary"
-                : "border-bg-border"
-            }`}
+            ${open ? "border-primary" : "border-bg-border"}`}
           onClick={() => setOpen(!open)}
         >
           <span className="leading-none uppercase tracking-wider text-xl">

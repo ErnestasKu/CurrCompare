@@ -13,7 +13,7 @@ export default function Header({ activeScreen, setActiveScreen }) {
           <nav className="flex items-center gap-1">
             <HeaderLink label="Dashboard" to="/dashboard" />
             <HeaderLink label="Historic" to="/historic" />
-            <HeaderLink label="Profile" to="/profile" />
+            <HeaderLink label="Corss Rates" to="/crossrates" />
           </nav>
         </div>
         <div className="flex items-center gap-2 rounded-2xl px-4 py-2 hover:bg-bg-lighter transition">

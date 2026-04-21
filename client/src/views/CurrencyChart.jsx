@@ -10,7 +10,7 @@ import {
   YAxis,
 } from "recharts";
 
-export default function CurrencyHistorical({ selectedCurrency, currencyData }) {
+export default function CurrencyChart({ selectedCurrency, currencyData }) {
   // const formatYAxis = (tickItem) => tickItem.toFixed(2);
   const isUp =
     currencyData?.length > 1 &&

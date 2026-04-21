@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import currencyList from "../utilities/currencyList";
 import DropdownCurrency from "./general/DropdownCurrency";
-import CurrencyHistorical from "./CurrencyHistorical";
+import CurrencyChart from "./CurrencyChart";
 import CurrencyService from "../services/CurrencyService";
 import { format, subDays } from "date-fns";
 import { RxCross2 } from "react-icons/rx";
@@ -96,11 +96,11 @@ export default function Dashboard({}) {
           const rate = filteredData[0]?.rate;
 
           return (
-            <div key={index} className="bubble flex gap-4 ">
+            <div key={index} className="bubble flex gap-4 group">
               <div className="flex flex-col h-full w-2/5 min-w-0">
                 <div className="flex justify-between">
                   <button
-                    className="text-txt-main hover:text-bad text-2xl w-fit rounded-2xl p-2 hover:bg-bad/10 transition"
+                    className="opacity-0 group-hover:opacity-100 text-txt-main hover:text-bad text-2xl w-fit rounded-2xl p-2 hover:bg-bad/10 transition"
                     onClick={() => handleRemoveCurrency(index)}
                   >
                     <RxCross2 />
@@ -124,7 +124,7 @@ export default function Dashboard({}) {
                           <span className="text-primary">
                             {currencyList.currencies[code].symbol}
                           </span>
-                          {filteredData[0]?.rate}
+                          {filteredData[filteredData.length - 1].rate}
                         </>
                       ) : (
                         "..."
@@ -140,7 +140,7 @@ export default function Dashboard({}) {
                 </div>
               </div>
               <div className="flex-1">
-                <CurrencyHistorical
+                <CurrencyChart
                   selectedCurrency={code}
                   currencyData={filteredData}
                 />

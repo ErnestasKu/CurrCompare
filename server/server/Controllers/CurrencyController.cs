@@ -27,21 +27,21 @@ namespace server.Controllers
             return jsonString;
         }
 
-        [HttpGet("supported-currencies")]
-        public async Task<IActionResult> GetSupportedCurrencies()
-        {
-            var client = _httpClientFactory.CreateClient("BankOfLithuania");
-            var response = await client.GetAsync("getCurrencyList");
+        //[HttpGet("supported-currencies")]
+        //public async Task<IActionResult> GetSupportedCurrencies()
+        //{
+        //    var client = _httpClientFactory.CreateClient("BankOfLithuania");
+        //    var response = await client.GetAsync("getCurrencyList");
 
-            if (response.IsSuccessStatusCode)
-            {
-                var xmlData = await response.Content.ReadAsStringAsync();
-                string jsonString = xmlToJson(xmlData);
-                return Ok(jsonString);
-            }
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var xmlData = await response.Content.ReadAsStringAsync();
+        //        string jsonString = xmlToJson(xmlData);
+        //        return Ok(jsonString);
+        //    }
 
-            return StatusCode((int)response.StatusCode, "Error fetching data");
-        }
+        //    return StatusCode((int)response.StatusCode, "Error fetching data");
+        //}
 
         [HttpGet("currency-data")]
         public async Task<IActionResult> GetCurrencyData(
@@ -77,21 +77,6 @@ namespace server.Controllers
 
                 if (!response.IsSuccessStatusCode)
                     return StatusCode((int)response.StatusCode, "External API error");
-
-                //var data = await response.Content.ReadAsStringAsync();
-                //return Content(data, "application/json");
-
-
-
-                //var stream = await response.Content.ReadAsStreamAsync();
-                //var json = await JsonSerializer.DeserializeAsync<object>(stream);
-                //return Ok(json);
-
-                //var raw = await response.Content.ReadAsStringAsync();
-                //return Content(raw, "text/plain");
-
-                //var stream = await response.Content.ReadAsStreamAsync();
-                //return File(stream, "application/json");
 
                 var jsonData = await response.Content.ReadAsStringAsync();
                 return Content(jsonData, "application/json");

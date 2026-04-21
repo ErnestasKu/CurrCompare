@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./react-datepicker.css";
+/* @import "react-day-picker/style.css"; */
 
 @theme {
   --color-primary: rgb(132, 242, 42);
@@ -12,6 +14,7 @@
   --color-bg-lighter2: hsl(223, 5%, 25%);
   --color-bg-lighter3: hsl(222, 7%, 35%);
   --color-bg-dark: hsl(225, 12%, 7%);
+  --color-bg-dark2: hsl(223, 11%, 12%);
   --color-bg-border: hsl(220, 6%, 20%);
 
   --color-txt-main: rgba(255, 255, 255, 0.87);
@@ -51,7 +54,7 @@
   }
 
   .page-select-field {
-    @apply w-full px-4 py-2 bg-bg-lighter border border-bg-border rounded-xl;
+    @apply w-full px-4 py-2 rounded-xl bg-bg-lighter border border-bg-border focus:border-primary outline-none transition duration-200;
   }
 }
 
@@ -62,3 +65,20 @@
     scrollbar-color: var(--color-primary) var(--color-bg-dark);
   }
 }
+
+.rdp-root {
+  --rdp-accent-color: var(--color-primary);
+  --rdp-day_button-border-radius: 16px;
+}
+
+select {
+  /* Changes the highlight color in some modern browsers */
+  accent-color: #ff5733; 
+}
+
+option:checked {
+  /* Works in some versions of Firefox/Chromium */
+  background-color: #ff5733 !important;
+  color: white;
+}
+
