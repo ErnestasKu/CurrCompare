@@ -33,9 +33,9 @@
 }
 
 @layer components {
-  .field-label {
+  /* .field-label {
     @apply text-xl sm:text-base lg:text-2xl lg:mt-6;
-  }
+  } */
 
   .bubble {
     @apply bg-bg-lighter/50 px-6 p-4 border border-bg-border hover:border-primary-hover transition rounded-2xl;

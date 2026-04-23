@@ -7,6 +7,7 @@ import Header from "./views/Header";
 import Historic from "./views/Historic";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import CrossRates from "./views/CrossRates";
+import Signup from "./views/Signup";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/historic" element={<Historic />} />
             <Route path="/crossrates" element={<CrossRates />} />
+            <Route path="/signup" element={<Signup />} />
 
             <Route
               path="*"

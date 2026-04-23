@@ -1,3 +1,10 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using server.Data;
+using server.Services;
+using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,20 +12,33 @@ builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowOrigin",
-        policy =>
-        {
-            policy.AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowAnyOrigin();
-        });
+    options.AddPolicy("ReactPolicy", policy =>
+        policy.WithOrigins("http://localhost:5173")
+        //.AllowAnyOrigin()
+        .AllowAnyHeader()
+        .AllowAnyMethod());
 });
 
-//builder.Services.AddHttpClient("BankOfLithuania", client =>
-//{
-//    client.BaseAddress = new Uri("https://www.lb.lt/webservices/fxrates/fxrates.asmx/");
-//    client.DefaultRequestHeaders.Add("Accept", "application/json");
-//});
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabase")));
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters()
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["AppSettings:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["AppSettings:Audience"],
+            ValidateLifetime = true,
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["AppSettings:Token"]!)),
+            ValidateIssuerSigningKey = true
+        };
+    });
+
+builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddHttpClient("Frankfurter", client =>
 {
     client.BaseAddress = new Uri("https://api.frankfurter.dev/v2/");
@@ -39,7 +59,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowOrigin");
+app.UseCors("ReactPolicy");
 app.UseAuthorization();
 app.MapControllers();
 app.Run();
