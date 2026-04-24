@@ -66,19 +66,11 @@
   }
 }
 
-.rdp-root {
-  --rdp-accent-color: var(--color-primary);
-  --rdp-day_button-border-radius: 16px;
-}
-
-select {
-  /* Changes the highlight color in some modern browsers */
+/* select {
   accent-color: #ff5733; 
 }
 
 option:checked {
-  /* Works in some versions of Firefox/Chromium */
   background-color: #ff5733 !important;
   color: white;
-}
-
+} */

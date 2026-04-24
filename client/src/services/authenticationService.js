@@ -6,27 +6,29 @@ export default class authenticationService {
     const queryString = params.toString();
 
     const url = `${import.meta.env.VITE_URL}/api/auth/register`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username,
-          email,
-          password,
-        }),
-      });
 
-      if (!response.ok) {
-        throw new Error(response);
-        // const errorData = await response.json().catch(() => ({}));
-        // throw new Error(
-        //   errorData.message || `Server error: ${response.status}`,
-        // );
-      }
-      return await response.json();
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        Username: username,
+        Email: email,
+        Password: password,
+      }),
+    });
+
+    return response;
+  }
+
+  decodeJwt(tokenString) {
+    if (!tokenString) return null;
+
+    try {
+      const payload = tokenString.split(".")[1];
+      const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+      return JSON.parse(atob(base64));
     } catch (error) {
-      console.error("Registration failed:", error);
+      console.error("Failed to decode JWT:", error);
       return null;
     }
   }

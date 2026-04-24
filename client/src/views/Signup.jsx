@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import authenticationService from "../services/authenticationService";
+import { AuthContext } from "../AuthContext";
 
 export default function Signup() {
+  const { setAuth } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
     passwordConfirm: "",
-    // role: "User",
   });
   const [error, setError] = useState("");
+  const trimmedUsername = formData.username.trim();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -25,22 +28,34 @@ export default function Signup() {
       return;
     }
 
+    if (trimmedUsername.length < 3) {
+      setError("Username must be at least 3 characters (excluding spaces)");
+      return;
+    }
+
     try {
-      const response = await fetch("https://localhost:5001/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          username: formData.username,
-          password: formData.password,
-          role: formData.role,
-        }),
-      });
+      const authService = new authenticationService();
+      const response = await authService.register(
+        trimmedUsername,
+        formData.email,
+        formData.password,
+      );
 
       if (response.ok) {
-        navigate("/login");
+        const rawTokens = await response.json();
+        const decodedJWT = authService.decodeJwt(rawTokens.accessToken);
+
+        setAuth({
+          token: rawTokens.accessToken,
+          id: decodedJWT.id,
+          username: decodedJWT.username,
+          role: decodedJWT.role,
+        });
+
+        navigate("/dashboard");
       } else {
-        const data = await response.json();
-        setError(data.message || "Registration failed");
+        const errorText = await response.text();
+        setError(errorText || "Registration failed");
       }
     } catch (err) {
       setError("Could not connect to the server");
@@ -71,6 +86,8 @@ export default function Signup() {
             required
             name="username"
             type="text"
+            minLength={3}
+            maxLength={30}
             className="page-select-field"
             placeholder="Enter your username"
             value={formData.username}
@@ -79,7 +96,7 @@ export default function Signup() {
         </div>
 
         <div>
-          <label className="page-label text-xl">Email Address</label>
+          <label className="page-label text-xl">Email</label>
           <input
             required
             name="email"
@@ -97,6 +114,7 @@ export default function Signup() {
             required
             name="password"
             type="password"
+            minLength={6}
             className="page-select-field"
             placeholder="Create a password"
             value={formData.password}
@@ -110,6 +128,7 @@ export default function Signup() {
             required
             name="passwordConfirm"
             type="password"
+            minLength={6}
             className="page-select-field w-full"
             placeholder="Verify your password"
             value={formData.passwordConfirm}
@@ -131,7 +150,7 @@ export default function Signup() {
             onClick={() => navigate("/login")}
             className="text-primary hover:text-primary-hover font-semibold ms-1"
           >
-            Log in
+            Log in!
           </button>
         </p>
       </form>

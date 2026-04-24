@@ -19,8 +19,10 @@ builder.Services.AddCors(options =>
         .AllowAnyMethod());
 });
 
+//builder.Services.AddDbContext<AppDbContext>(options =>
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabase")));
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabase")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("AppDatabase")));
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -58,8 +60,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseCors("ReactPolicy");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.Run();

@@ -30,7 +30,7 @@ namespace server.Services
             return await CreateTokenResponse(user);
         }
 
-        private async Task<TokenResponseDto> CreateTokenResponse(User user)
+        public async Task<TokenResponseDto> CreateTokenResponse(User user)
         {
             return new TokenResponseDto()
             {
@@ -51,10 +51,10 @@ namespace server.Services
         public async Task<User?> RegisterAsync(UserDto request)
         {
             if (request.Username == null)
-                return null;
+                throw new Exception("Username is required.");
 
             if (await context.Users.AnyAsync(u => u.Email == request.Email))
-                return null;
+                throw new Exception("Email already exists.");
 
             var user = new User();
             var hashedPassword = new PasswordHasher<User>()
@@ -67,15 +67,24 @@ namespace server.Services
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
+            // additional table creation ----------------------------------
+            var dashboard = new UserDashboardSettings { UserId = user.Id };
+            var crossRate = new UserCrossRateSettings { UserId = user.Id };
+
+            context.UserDashboardSettings.Add(dashboard);
+            context.UserCrossRateSettings.Add(crossRate);
+
+            await context.SaveChangesAsync();
+
             return user;
         }
 
         private string CreateToken(User user)
         {
             var claims = new List<Claim> {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Role, user.Role.ToString())
+                new Claim("username", user.Username),
+                new Claim("id", user.Id.ToString()),
+                new Claim("role", user.Role.ToString())
             };
 
             var key = new SymmetricSecurityKey(

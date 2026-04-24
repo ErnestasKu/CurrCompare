@@ -4,13 +4,17 @@ namespace server.Models
 {
     public class UserDto
     {
-        [Required, MinLength(3), MaxLength(20)]
+        [MaxLength(30)]
         public string? Username { get; set; } = string.Empty;
 
-        [Required, EmailAddress]
+        [Required]
+        [MaxLength(254)]
+        [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required, MinLength(6)]
+        [Required]
+        [MinLength(6)]
+        [MaxLength(128)]
         public string Password { get; set; } = string.Empty;
     }
 }
