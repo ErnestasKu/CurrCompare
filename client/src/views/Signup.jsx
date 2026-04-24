@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import authenticationService from "../services/authenticationService";
 import { AuthContext } from "../AuthContext";
+import authService from "../services/authenticationService";
 
 export default function Signup() {
   const { setAuth } = useContext(AuthContext);
@@ -34,7 +34,6 @@ export default function Signup() {
     }
 
     try {
-      const authService = new authenticationService();
       const response = await authService.register(
         trimmedUsername,
         formData.email,
@@ -42,15 +41,9 @@ export default function Signup() {
       );
 
       if (response.ok) {
-        const rawTokens = await response.json();
-        const decodedJWT = authService.decodeJwt(rawTokens.accessToken);
-
-        setAuth({
-          token: rawTokens.accessToken,
-          id: decodedJWT.id,
-          username: decodedJWT.username,
-          role: decodedJWT.role,
-        });
+        const accessToken = await response.json();
+        const tokenData = authService.formatTokenData(accessToken);
+        setAuth(tokenData);
 
         navigate("/dashboard");
       } else {

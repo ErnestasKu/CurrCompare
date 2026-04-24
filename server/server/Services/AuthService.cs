@@ -18,11 +18,11 @@ namespace server.Services
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
             if (user == null)
-                return null;
+                throw new Exception("Email not in use");
 
             if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password)
                 == PasswordVerificationResult.Failed)
-                return null;
+                throw new Exception("Incorrect password.");
 
             user.LastLogin = DateTime.UtcNow;
             await context.SaveChangesAsync();
@@ -38,11 +38,22 @@ namespace server.Services
                 RefreshToken = await GenerateSaveRefreshTokenAsync(user)
             };
         }
-
-        public async Task<TokenResponseDto?> RefreshTokensAsync(RefreshTokenRequestDto request)
+        public async Task RevokeTokenAsync(string refreshToken)
         {
-            var user = await ValidateRefreshTokenAsync(request.UserId, request.RefreshToken);
-            if (user == null)
+            var user = await context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+            if (user == null) return;
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<TokenResponseDto?> RefreshWithOnlyTokenAsync(string refreshToken)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
+
+            if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
                 return null;
 
             return await CreateTokenResponse(user);
@@ -51,10 +62,10 @@ namespace server.Services
         public async Task<User?> RegisterAsync(UserDto request)
         {
             if (request.Username == null)
-                throw new Exception("Username is required.");
+                throw new Exception("Username is required");
 
             if (await context.Users.AnyAsync(u => u.Email == request.Email))
-                throw new Exception("Email already exists.");
+                throw new Exception("Email already exists");
 
             var user = new User();
             var hashedPassword = new PasswordHasher<User>()

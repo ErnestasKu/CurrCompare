@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using server.Entities;
 using server.Models;
@@ -17,18 +19,17 @@ namespace server.Controllers
     public class AuthController(IAuthService authService) : ControllerBase
     {
         [HttpPost("register")]
-        public async Task<ActionResult<TokenResponseDto>> Register(UserDto request)
+        public async Task<ActionResult> Register(UserDto request)
         {
             try
             {
                 var user = await authService.RegisterAsync(request);
-
                 if (user is null)
-                    return BadRequest("An unexpected error occurred during registration");
+                    return BadRequest("Error during registration");
 
-
-                TokenResponseDto tokenResponse = await authService.CreateTokenResponse(user);
-                return Ok(tokenResponse);
+                var result = await authService.CreateTokenResponse(user);
+                SetRefreshTokenCookie(result.RefreshToken);
+                return Ok(new { accessToken = result.AccessToken });
             }
             catch (Exception ex)
             {
@@ -39,23 +40,62 @@ namespace server.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<TokenResponseDto>> Login(UserDto request)
         {
-            var res = await authService.LoginAsync(request);
-            if (res is null)
-                return BadRequest("Invalid email or password");
+            try
+            {
+                var res = await authService.LoginAsync(request);
+                if (res is null)
+                    return BadRequest("Invalid email or password");
 
-            return Ok(res);
+                SetRefreshTokenCookie(res.RefreshToken);
+                return Ok(res);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost(("refresh-token"))]
-        public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto request)
+        public async Task<ActionResult> RefreshToken()
         {
-            var result = await authService.RefreshTokensAsync(request);
-            if (result is null ||
-                result.AccessToken is null ||
-                result.RefreshToken is null)
+            // get token from cookie
+            var refreshToken = Request.Cookies["refreshToken"];
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized("No refresh token provided");
+
+            // verify
+            var result = await authService.RefreshWithOnlyTokenAsync(refreshToken);
+            if (result is null)
                 return Unauthorized("Invalid refresh token");
 
-            return Ok(result);
+            // update cookie, send new access token
+            SetRefreshTokenCookie(result.RefreshToken);
+            return Ok(new { accessToken = result.AccessToken });
+        }
+
+        [HttpPost("logout")]
+        public async Task<ActionResult> Logout()
+        {
+            var refreshToken = Request.Cookies["refreshToken"];
+
+            if (!string.IsNullOrEmpty(refreshToken))
+                await authService.RevokeTokenAsync(refreshToken);
+
+            Response.Cookies.Delete("refreshToken");
+
+            return Ok();
+        }
+
+        private void SetRefreshTokenCookie(string refreshToken)
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict,
+                Expires = DateTime.UtcNow.AddDays(7)
+            };
+            Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
 
         [Authorize]

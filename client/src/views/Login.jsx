@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import authenticationService from "../services/authenticationService";
+import authService from "../services/authenticationService";
+import { AuthContext } from "../AuthContext";
 
 export default function Login() {
+  const { setAuth } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -18,20 +20,21 @@ export default function Login() {
     e.preventDefault();
     setError("");
 
-    if (formData.password !== formData.passwordConfirm) {
-      setError("Passwords do not match");
-      return;
-    }
-
     try {
-      const auth = new authenticationService();
-      const response = await auth.register(formData.username, formData.email, formData.password);
+      const response = await authService.login(
+        formData.email,
+        formData.password,
+      );
 
       if (response.ok) {
-        navigate("/login");
+        const accessToken = await response.json();
+        const tokenData = authService.formatTokenData(accessToken);
+        setAuth(tokenData);
+
+        navigate("/dashboard");
       } else {
-        const data = await response.json();
-        setError(data.message || "Registration failed");
+        const errorText = await response.text();
+        setError(errorText || "Login failed");
       }
     } catch (err) {
       setError("Could not connect to the server");
@@ -86,7 +89,7 @@ export default function Login() {
           type="submit"
           className="mt-2 bg-primary hover:bg-primary-hover text-bg-main font-bold p-3 rounded-xl shadow-md shadow-black"
         >
-          Sign Up
+          Log in
         </button>
 
         <p className="text-center text-txt-dark">

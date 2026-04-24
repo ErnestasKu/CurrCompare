@@ -64,6 +64,9 @@ namespace server.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
+                    b.HasIndex("RefreshToken")
+                        .IsUnique();
+
                     b.ToTable("Users");
                 });
 

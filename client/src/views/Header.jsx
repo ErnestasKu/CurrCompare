@@ -1,17 +1,13 @@
 import { useContext, useRef, useState } from "react";
-import { CgProfile } from "react-icons/cg";
 import { Link, NavLink as RouterLink } from "react-router-dom";
-import useClickOutside from "../utilities/useClickOutside";
-import { CiLogin } from "react-icons/ci";
-import { MdOutlinePersonAddAlt } from "react-icons/md";
-import { AuthContext } from "../AuthContext";
+import ProfileMenu from "./ProfileMenu";
 
 export default function Header({ activeScreen, setActiveScreen }) {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { auth, setAuth } = useContext(AuthContext);
-
-  const ClickOutRef = useRef(null);
-  useClickOutside(ClickOutRef, () => setMenuOpen(false));
+  const handleLogout = () => {
+    setAuth(null);
+    setMenuOpen(false);
+    navigate("/dashboard");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-bg-border bg-bg-main">
@@ -27,49 +23,11 @@ export default function Header({ activeScreen, setActiveScreen }) {
             <HeaderLink label="Corss Rates" to="/crossrates" />
           </nav>
         </div>
-        <div ref={ClickOutRef} className="relative">
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="flex items-center gap-2 rounded-2xl px-4 py-2 hover:bg-bg-lighter transition"
-          >
-            <CgProfile
-              className={`text-3xl ${menuOpen ? "text-primary" : ""}`}
-            />
-            <span className="text-xl font-semibold">Sign in {auth?.username}</span>
-          </button>
-
-          {menuOpen && (
-            <div
-              className="absolute right-0 mt-2 min-w-54
-              bg-bg-lighter divide-y divide-bg-lighter3/20
-              border border-bg-border rounded-xl shadow-lg p-1 space-y-1"
-            >
-              <Link
-                to="/login"
-                className="flex items-center gap-2 px-4 py-3 text-lg hover:bg-bg-lighter2 rounded-xl"
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="text-primary text-2xl">
-                  <CiLogin />
-                </span>
-                Log In
-              </Link>
-              <Link
-                to="/signup"
-                className="flex items-center gap-2 px-4 py-3 text-lg hover:bg-bg-lighter2 rounded-xl"
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="text-primary text-2xl">
-                  <MdOutlinePersonAddAlt />
-                </span>
-                Create Account
-              </Link>
-            </div>
-          )}
-        </div>
+        <ProfileMenu />
       </div>
     </header>
   );
+
   function HeaderLink({ label, to }) {
     return (
       <RouterLink

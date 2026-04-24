@@ -13,7 +13,7 @@ using server.Data;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260424000126_InitialCreate")]
+    [Migration("20260424024958_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -65,6 +65,9 @@ namespace server.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("RefreshToken")
                         .IsUnique();
 
                     b.ToTable("Users");

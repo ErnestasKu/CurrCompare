@@ -88,6 +88,12 @@ namespace server.Migrations
                 table: "Users",
                 column: "Email",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Users_RefreshToken",
+                table: "Users",
+                column: "RefreshToken",
+                unique: true);
         }
 
         /// <inheritdoc />

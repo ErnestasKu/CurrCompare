@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 namespace server.Entities
 {
     [Index(nameof(Email), IsUnique = true)]
+    [Index(nameof(RefreshToken), IsUnique = true)]
     public class User
     {
         [Key]
