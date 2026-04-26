@@ -59,10 +59,19 @@ export default function Login() {
           </div>
         )}
 
+        {/* fake input because autocomplete sucks */}
+        <input
+          type="text"
+          name="username"
+          autoComplete="username"
+          className="hidden"
+        />
+
         <div>
           <label className="page-label text-xl">Email</label>
           <input
             required
+            autoComplete="email"
             name="email"
             type="email"
             className="page-select-field"

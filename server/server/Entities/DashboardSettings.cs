@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace server.Entities
 {
-    public class UserDashboardSettings
+    public class DashboardSettings
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -18,6 +18,6 @@ namespace server.Entities
         public string? BaseCurrency { get; set; }
 
         [Required]
-        public List<string> Watchlist { get; set; } = new();
+        public List<string> Watchlist { get; set; } = [];
     }
 }

@@ -7,22 +7,25 @@ import {
   MdBadge,
   MdFingerprint,
   MdPersonOutline,
+  MdShield,
+  MdCalendarToday,
 } from "react-icons/md";
 import LoadingScreen from "./general/LoadingScreen";
 import userService from "../services/userService";
+import { FaFingerprint } from "react-icons/fa";
+import { RiAccountCircleFill } from "react-icons/ri";
+import { IoMdMail } from "react-icons/io";
+import { CiLogin } from "react-icons/ci";
+import { IoLogIn, IoLogInSharp } from "react-icons/io5";
 
 export default function Profile() {
-  const { auth } = useContext(AuthContext);
   const { id } = useParams();
-  const [userInfo, setUserInfo] = useState(false);
+  const [userInfo, setUserInfo] = useState();
 
   useEffect(() => {
     if (!id) return;
 
     const retrieveData = async () => {
-      // userService.getUserInfo()
-      //   console.log("gggggg:", id);
-
       try {
         const data = await userService.getUserInfo(id);
         setUserInfo(data);
@@ -34,7 +37,7 @@ export default function Profile() {
     retrieveData();
   }, [id]);
 
-  if (!auth) return <LoadingScreen />;
+  if (!userInfo) return <LoadingScreen />;
 
   return (
     <div className="page-default space-y-8">
@@ -44,48 +47,62 @@ export default function Profile() {
         <div className="bubble flex flex-col p-8 aspect-square w-64 h-64 items-center justify-between bg-linear-to-b from-bg-dark to-bg-dark2">
           <div className="w-32 aspect-square rounded-full bg-linear-to-tr from-primary to-blue-400 p-1 shadow-lg shadow-primary/20">
             <div className="w-full h-full bg-bg-dark rounded-full flex items-center justify-center text-primary text-6xl font-bold">
-              {auth.username?.charAt(0).toUpperCase()}
+              {userInfo.username?.charAt(0).toUpperCase()}
             </div>
           </div>
 
           <span className="p-2 text-center w-full h-full font-bold text-2xl truncate mt-4">
-            {auth.username}
+            {userInfo.username}
           </span>
         </div>
 
-        <div className="w-full">
-          <div className="bubble w-full mx-auto">
-            <div className="p-6 space-y-8">
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-start">
-                <div className="md:col-span-1 flex items-center gap-2 text-txt-dark py-1">
-                  <MdPersonOutline className="text-xl" />
-                  <label className="text-sm font-medium">Username</label>
-                </div>
-                <div className="md:col-span-3">
-                  <p className="text-xl font-medium px-4 py-2 bg-white/5 rounded-lg border border-bg-border inline-block min-w-[200px]">
-                    {auth.username}
-                  </p>
-                </div>
-              </div>
+        <div className="bubble w-full h-fit p-8 grid grid-cols-2 gap-y-3 gap-x-8 items-center">
+          <h3 className="text-xl font-semibold mb-3 flex items-center gap-2 col-span-2">
+            <span className="w-1 h-6 bg-primary rounded-full"></span>
+            Account Information
+          </h3>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-2 items-start">
-                <div className="md:col-span-1 flex items-center gap-2 text-txt-dark py-1">
-                  <MdFingerprint className="text-xl" />
-                  <label className="text-sm font-medium">Internal ID</label>
-                </div>
-                <div className="md:col-span-3">
-                  <code className="text-xs font-mono bg-bg-dark2 text-primary p-4 rounded-xl border border-primary/20 block overflow-x-auto">
-                    {auth.id}
-                  </code>
-                  <p className="text-[10px] text-gray-500 mt-2 italic">
-                    This unique identifier is used for system-level
-                    authentication.
-                  </p>
-                </div>
-              </div>
+          <div className="space-y-1 col-span-2">
+            <label className="text-txt-dark text-xs font-bold uppercase tracking-wider flex items-center gap-2">
+              <FaFingerprint />
+              Id
+            </label>
+            <div className="px-4 py-3 bg-bg-dark2 rounded-xl border border-bg-border font-mono text-primary">
+              {userInfo.id}
             </div>
           </div>
+
+          <InfoField
+            label="Username"
+            value={userInfo.username}
+            icon={<RiAccountCircleFill />}
+          />
+          <InfoField label="Email" value={userInfo.email} icon={<IoMdMail />} />
+          <InfoField label="Role" value={userInfo.role} icon={<MdShield />} />
+          <InfoField
+            label="Created at"
+            value={userInfo.createdAt.split("T")[0]}
+            icon={<MdCalendarToday />}
+          />
+          <InfoField
+            label="Last login"
+            value={userInfo.lastLogin ? userInfo.lastLogin.split("T")[0] : "-"}
+            icon={<IoLogIn />}
+          />
         </div>
+      </div>
+    </div>
+  );
+}
+
+function InfoField({ label, value, icon }) {
+  return (
+    <div className="space-y-1">
+      <label className="text-txt-dark text-sm font-bold uppercase tracking-wider flex items-center gap-2">
+        {icon} {label}
+      </label>
+      <div className="px-4 py-3 bg-bg-dark2 rounded-xl border border-bg-border">
+        {value}
       </div>
     </div>
   );

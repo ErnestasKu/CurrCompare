@@ -44,7 +44,7 @@ export default function Signup() {
         const accessToken = await response.json();
         const tokenData = authService.formatTokenData(accessToken);
         setAuth(tokenData);
-
+        
         navigate("/dashboard");
       } else {
         const errorText = await response.text();
@@ -74,21 +74,6 @@ export default function Signup() {
         )}
 
         <div>
-          <label className="page-label text-xl">Username</label>
-          <input
-            required
-            name="username"
-            type="text"
-            minLength={3}
-            maxLength={30}
-            className="page-select-field"
-            placeholder="Enter your username"
-            value={formData.username}
-            onChange={handleChange}
-          />
-        </div>
-
-        <div>
           <label className="page-label text-xl">Email</label>
           <input
             required
@@ -102,9 +87,26 @@ export default function Signup() {
         </div>
 
         <div>
+          <label className="page-label text-xl">Username</label>
+          <input
+            required
+            autoComplete="username"
+            name="username"
+            type="text"
+            minLength={3}
+            maxLength={30}
+            className="page-select-field"
+            placeholder="Enter your username"
+            value={formData.username}
+            onChange={handleChange}
+          />
+        </div>
+
+        <div>
           <label className="page-label text-xl">Password</label>
           <input
             required
+            autoComplete="new-password"
             name="password"
             type="password"
             minLength={6}
@@ -133,7 +135,7 @@ export default function Signup() {
           type="submit"
           className="mt-2 bg-primary hover:bg-primary-hover text-bg-main font-bold p-3 rounded-xl shadow-md shadow-black"
         >
-          Sign Up
+          Continue
         </button>
 
         <p className="text-center text-txt-dark">

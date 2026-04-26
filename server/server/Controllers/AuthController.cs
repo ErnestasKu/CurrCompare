@@ -97,26 +97,6 @@ namespace server.Controllers
             };
             Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
         }
-
-        [Authorize]
-        [HttpGet("auth")]
-        public IActionResult AuthenticatedOnlyEndpoint()
-        {
-            return Ok("You are authenticated");
-        }
-
-        [Authorize(Roles = nameof(UserRole.Admin))]
-        [HttpGet("admin")]
-        public IActionResult AdminOnlyEndpoint()
-        {
-            return Ok("You are an Admin");
-        }
-
-        //[HttpGet("aaa")]
-        //public IActionResult aaa()
-        //{
-        //    return Ok("AAAAAAAA AAAAAAAAAA AAAAAAAA");
-        //}
     }
 
 }

@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace server.Entities
 {
-    public class UserCrossRateSettings
+    public class CrossRateSettings
     {
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
@@ -18,7 +18,7 @@ namespace server.Entities
         public decimal? DefaultAmount { get; set; }
 
         [Required]
-        public List<string> SelectedCurrencies { get; set; } = new();
+        public List<string> SelectedCurrencies { get; set; } = [];
 
     }
 }

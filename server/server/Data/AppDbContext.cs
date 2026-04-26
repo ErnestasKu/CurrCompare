@@ -6,8 +6,8 @@ namespace server.Data
     public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
     {
         public DbSet<User> Users { get; set; }
-        public DbSet<UserDashboardSettings> UserDashboardSettings { get; set; }
-        public DbSet<UserCrossRateSettings> UserCrossRateSettings { get; set; }
+        public DbSet<DashboardSettings> DashboardSettings { get; set; }
+        public DbSet<CrossRateSettings> CrossRateSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -15,17 +15,31 @@ namespace server.Data
                 .Property(u => u.Role)
                 .HasConversion<string>();
 
-            modelBuilder.Entity<UserCrossRateSettings>()
+            // UserCrossRateSettings --------------------
+            modelBuilder.Entity<CrossRateSettings>()
                 .Property(s => s.DefaultAmount)
                 .HasPrecision(18, 8);
 
-            modelBuilder.Entity<UserDashboardSettings>()
-                .HasIndex(s => s.UserId)
-                .IsUnique();
+            modelBuilder.Entity<CrossRateSettings>()
+                .HasOne(s => s.User)
+                .WithOne(u => u.CrossRateSettings)
+                .HasForeignKey<CrossRateSettings>(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<UserCrossRateSettings>()
-                .HasIndex(s => s.UserId)
-                .IsUnique();
+            modelBuilder.Entity<CrossRateSettings>()
+                .Property(e => e.SelectedCurrencies)
+                .HasColumnType("text[]");
+
+            // UserDashboardSettings --------------------
+            modelBuilder.Entity<DashboardSettings>()
+                .HasOne(s => s.User)
+                .WithOne(u => u.DashboardSettings)
+                .HasForeignKey<DashboardSettings>(s => s.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<DashboardSettings>()
+                .Property(e => e.Watchlist)
+                .HasColumnType("text[]");
         }
     }
 }

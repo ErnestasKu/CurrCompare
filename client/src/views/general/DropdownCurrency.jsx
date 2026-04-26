@@ -8,6 +8,7 @@ export default function DropdownCurrency({
   selected,
   setSelected,
   disabled,
+  isDisabled,
 }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -17,6 +18,12 @@ export default function DropdownCurrency({
       key.toLowerCase().includes(search.toLowerCase()),
   );
 
+  const handleToggle = () => {
+    if (!isDisabled) {
+      setOpen(!open);
+    }
+  };
+
   const ClickOutRef = useRef(null);
   useClickOutside(ClickOutRef, () => setOpen(false));
 
@@ -24,12 +31,13 @@ export default function DropdownCurrency({
     <div ref={ClickOutRef} className="relative w-full">
       {selected ? (
         <button
+          disabled={isDisabled}
           className={`
             page-select-field
             flex items-center justify-between
-            
-        ${open ? "border-primary" : ""}`}
-          onClick={() => setOpen(!open)}
+            ${open ? "border-primary" : ""} 
+            ${isDisabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          onClick={handleToggle}
         >
           <span className="truncate">
             {selected === undefined || selected == null
@@ -43,14 +51,15 @@ export default function DropdownCurrency({
         </button>
       ) : (
         <button
+          disabled={isDisabled}
           className={`
             w-full px-4 py-2
             flex items-center justify-center
             text-2xl hover:text-primary
             rounded-xl border
-            transition duration-200
-            ${open ? "border-primary" : "border-bg-border"}`}
-          onClick={() => setOpen(!open)}
+            ${open ? "border-primary" : "border-bg-border"} 
+            ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+          onClick={handleToggle}
         >
           <span className="leading-none uppercase tracking-wider text-xl">
             + Add currency

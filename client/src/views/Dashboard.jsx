@@ -1,19 +1,21 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import currencyList from "../utilities/currencyList";
 import DropdownCurrency from "./general/DropdownCurrency";
 import CurrencyChart from "./CurrencyChart";
 import CurrencyService from "../services/CurrencyService";
 import { format, subDays } from "date-fns";
 import { RxCross2 } from "react-icons/rx";
+import { LuSave, LuTrash2 } from "react-icons/lu";
+import { AuthContext } from "../AuthContext";
+import dashboardService from "../services/DashboardService";
+import { FaUndo } from "react-icons/fa";
 
 export default function Dashboard({}) {
+  const { auth } = useContext(AuthContext);
   const [baseCurrency, setBaseCurrency] = useState("EUR");
-  // const [selectedCurrency, setSelectedCurrency] = useState();
-  // const [currencyData, setCurrencyData] = useState();
   const [startDate, setStartDate] = useState();
   const [endDate, setEndDate] = useState();
 
-  // const [selectedCurrencies, setSelectedCurrencies] = useState([]);
   const [selectedCurrencies, setSelectedCurrencies] = useState([
     "USD",
     "GBP",
@@ -43,31 +45,105 @@ export default function Dashboard({}) {
     });
   }
 
+  const handleDefaultSettings = () => {
+    setBaseCurrency("EUR");
+    setSelectedCurrencies(["USD", "GBP", "JPY", "CHF", "XAU"]);
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      await dashboardService.updateSettings(
+        auth.id,
+        {
+          baseCurrency: baseCurrency,
+          watchlist: selectedCurrencies,
+        },
+        auth.token,
+      );
+    } catch (error) {
+      console.error("Failed to save settings", error);
+    }
+  };
+
+  const handleDeleteSettings = async () => {
+    try {
+      await dashboardService.updateSettings(
+        auth.id,
+        {
+          baseCurrency: null,
+          watchlist: [],
+        },
+        auth.token,
+      );
+      handleDefaultSettings();
+    } catch (error) {
+      console.error("Failed to clear settings", error);
+    }
+  };
+
   useEffect(() => {
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     async function GetHistorical() {
       const today = format(new Date(), "yyyy-MM-dd");
       const startDate = format(subDays(today, 30), "yyyy-MM-dd");
       const currencyString = selectedCurrencies.join(",");
 
-      const cs = new CurrencyService();
-      const data = await cs.getCurrencyHistorical(
-        baseCurrency,
-        currencyString,
-        startDate,
-        today,
-      );
-      setCurrencyData(data);
-      console.log(data);
+      try {
+        const cs = new CurrencyService();
+        const data = await cs.getCurrencyHistorical(
+          baseCurrency,
+          currencyString,
+          startDate,
+          today,
+          signal,
+        );
+        setCurrencyData(data);
+      } catch (error) {
+        if (error.name === "AbortError") {
+          console.log("Fetch aborted");
+        } else {
+          console.error("Failed to fetch history:", error);
+        }
+      }
     }
-    if (selectedCurrencies) GetHistorical();
+    if (selectedCurrencies && baseCurrency) GetHistorical();
+    return () => {
+      controller.abort();
+    };
   }, [baseCurrency, selectedCurrencies]);
+
+  useEffect(() => {
+    const fetchUserSettings = async () => {
+      if (auth?.id && auth?.token) {
+        try {
+          const settings = await dashboardService.get(auth.id, auth.token);
+
+          if (settings) {
+            if (settings.baseCurrency) {
+              setBaseCurrency(settings.baseCurrency);
+            }
+            if (
+              Array.isArray(settings.watchlist) &&
+              settings.watchlist.length > 0
+            ) {
+              setSelectedCurrencies(settings.watchlist);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load user settings:", error);
+        }
+      }
+    };
+
+    fetchUserSettings();
+  }, [auth]);
 
   return (
     <div className="page-default space-y-6">
-      <div className="page-title">Market Rate Comparison</div>
-
-      <div className="bubble flex justify-between">
-        <div>
+      <div className="sm:flex justify-between items-end">
+        <div className="bubble items-center flex sm:block">
           <div className="page-label">Base currency</div>
 
           <div className="w-64">
@@ -79,9 +155,42 @@ export default function Dashboard({}) {
           </div>
         </div>
 
-        <div className="flex items-center">
+        <div className="page-title self-center">
+          Monthly <br /> Market Rates
+        </div>
+
+        <div className="bubble flex flex-col items-center gap-1">
+          <div className="flex items-center w-full gap-2 pb-1">
+            {auth && (
+              <>
+                <button
+                  onClick={handleSaveSettings}
+                  title="Save preset config"
+                  className="save-data w-full flex justify-center"
+                >
+                  <LuSave />
+                </button>
+                <button
+                  onClick={handleDeleteSettings}
+                  title="Delete preset config"
+                  className="clear-data w-full flex justify-center"
+                >
+                  <LuTrash2 />
+                </button>
+              </>
+            )}
+
+            <button
+              onClick={handleDefaultSettings}
+              title="Load default layout"
+              className="default-data w-full flex justify-center"
+            >
+              <FaUndo /> {!auth && "Load default layout"}
+            </button>
+          </div>
           <div className="w-64">
             <DropdownCurrency
+              isDisabled={selectedCurrencies?.length >= 10}
               data={currencyList.currencies}
               setSelected={handleAddCurrency}
             />

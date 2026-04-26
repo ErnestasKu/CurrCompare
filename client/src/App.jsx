@@ -10,6 +10,7 @@ import { AuthContext } from "./AuthContext";
 import authService from "./services/authenticationService";
 import Profile from "./views/Profile";
 import LoadingScreen from "./views/general/LoadingScreen";
+import Admin from "./views/Admin";
 
 function App() {
   const { auth, setAuth } = useContext(AuthContext);
@@ -19,7 +20,6 @@ function App() {
     const verifyRefreshToken = async () => {
       try {
         const response = await authService.refreshToken();
-
         if (response.ok) {
           const accessToken = await response.json();
           const tokenData = authService.formatTokenData(accessToken);
@@ -28,7 +28,7 @@ function App() {
           setAuth(null);
         }
       } catch (err) {
-        // console.log("Auth check failed");
+        setAuth(null);
       } finally {
         setIsLoaded(true);
       }
@@ -40,6 +40,22 @@ function App() {
       setIsLoaded(true);
     }
   }, []);
+
+  const PublicRoute = ({ children }) => {
+    if (auth?.token) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return children;
+  };
+
+  const AdminRoute = ({ children }) => {
+    if (!isLoaded || auth === null) return <LoadingScreen />;
+
+    if (auth?.role === "Admin" && auth?.token) {
+      return children;
+    }
+    return <Navigate to="/dashboard" replace />;
+  };
 
   if (!isLoaded) return <LoadingScreen />;
 
@@ -55,8 +71,30 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/historic" element={<Historic />} />
             <Route path="/crossrates" element={<CrossRates />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login" element={<Login />} />
+            <Route
+              path="/signup"
+              element={
+                <PublicRoute>
+                  <Signup />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <PublicRoute>
+                  <Login />
+                </PublicRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <AdminRoute>
+                  <Admin />
+                </AdminRoute>
+              }
+            />
             <Route path="/profile/:id" element={<Profile />} />
 
             <Route

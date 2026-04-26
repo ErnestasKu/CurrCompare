@@ -1,14 +1,10 @@
 import { useContext, useRef, useState } from "react";
 import { Link, NavLink as RouterLink } from "react-router-dom";
 import ProfileMenu from "./ProfileMenu";
+import { AuthContext } from "../AuthContext";
 
 export default function Header({ activeScreen, setActiveScreen }) {
-  const handleLogout = () => {
-    setAuth(null);
-    setMenuOpen(false);
-    navigate("/dashboard");
-  };
-
+  const { auth, setAuth } = useContext(AuthContext);
   return (
     <header className="sticky top-0 z-50 w-full border-b border-bg-border bg-bg-main">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
@@ -21,6 +17,12 @@ export default function Header({ activeScreen, setActiveScreen }) {
             <HeaderLink label="Dashboard" to="/dashboard" />
             <HeaderLink label="Historic" to="/historic" />
             <HeaderLink label="Corss Rates" to="/crossrates" />
+
+            {auth?.role === "Admin" ? (
+              <HeaderLink label="Admin" to="/admin" />
+            ) : (
+              ""
+            )}
           </nav>
         </div>
         <ProfileMenu />

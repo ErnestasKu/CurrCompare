@@ -16,7 +16,8 @@ namespace server.Services
     {
         public async Task<TokenResponseDto?> LoginAsync(UserDto request)
         {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
             if (user == null)
                 throw new Exception("Email not in use");
 
@@ -61,10 +62,11 @@ namespace server.Services
 
         public async Task<User?> RegisterAsync(UserDto request)
         {
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             if (request.Username == null)
                 throw new Exception("Username is required");
 
-            if (await context.Users.AnyAsync(u => u.Email == request.Email))
+            if (await context.Users.AnyAsync(u => u.Email == normalizedEmail))
                 throw new Exception("Email already exists");
 
             var user = new User();
@@ -72,18 +74,19 @@ namespace server.Services
                 .HashPassword(user, request.Password);
 
             user.Username = request.Username;
-            user.Email = request.Email;
+            user.Email = normalizedEmail;
             user.PasswordHash = hashedPassword;
+            user.LastLogin = DateTime.UtcNow;
 
             context.Users.Add(user);
             await context.SaveChangesAsync();
 
             // additional table creation ----------------------------------
-            var dashboard = new UserDashboardSettings { UserId = user.Id };
-            var crossRate = new UserCrossRateSettings { UserId = user.Id };
+            var dashboard = new DashboardSettings { UserId = user.Id };
+            var crossRate = new CrossRateSettings { UserId = user.Id };
 
-            context.UserDashboardSettings.Add(dashboard);
-            context.UserCrossRateSettings.Add(crossRate);
+            context.DashboardSettings.Add(dashboard);
+            context.CrossRateSettings.Add(crossRate);
 
             await context.SaveChangesAsync();
 

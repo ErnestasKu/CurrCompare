@@ -33,7 +33,7 @@ export default function CurrencyChart({ selectedCurrency, currencyData }) {
             <CartesianGrid
               strokeDasharray="3 3"
               vertical={false}
-              stroke={"var(--color-bg-lighter2"}
+              stroke={"var(--color-bg-lighter2)"}
             />
 
             <XAxis

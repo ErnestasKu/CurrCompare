@@ -32,5 +32,8 @@ namespace server.Entities
 
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiryTime { get; set; }
+
+        public virtual CrossRateSettings? CrossRateSettings { get; set; }
+        public virtual DashboardSettings? DashboardSettings { get; set; }
     }
 }
