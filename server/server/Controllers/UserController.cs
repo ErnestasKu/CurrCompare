@@ -1,13 +1,7 @@
-﻿using Azure.Core;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using server.Data;
-using server.Entities;
 using server.Models;
-using server.Services;
 
 namespace server.Controllers
 {

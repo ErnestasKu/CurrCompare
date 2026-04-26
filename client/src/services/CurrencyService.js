@@ -1,19 +1,4 @@
 export default class CurrencyService {
-  async getCurrencies() {
-    // try {
-    //   const response = await fetch(
-    //     `${import.meta.env.VITE_URL}/api/currency/supported-currencies`,
-    //   );
-    //   if (!response.ok) {
-    //     throw new Error(response.status);
-    //   }
-    //   return await response.json();
-    // } catch (error) {
-    //   console.error("Failed to fetch currencies:", error);
-    //   return null;
-    // }
-  }
-
   async getCurrencyHistorical(baseCode, quotesCode, start, end, signal) {
     const params = new URLSearchParams();
     if (baseCode) params.append("baseCode", baseCode);

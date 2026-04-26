@@ -1,5 +1,3 @@
-//https://localhost:7056/api/auth/register?Username=aaa&Password=bbb
-
 let memoizedToken = null;
 
 class AuthenticationService {

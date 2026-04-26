@@ -64,10 +64,13 @@ export default function CrossRates() {
 
   const handleSaveSettings = async () => {
     try {
+      const MIN = 0;
+      const MAX = 9_999_999_999;
+      const finalAmount = Math.min(Math.max(amount, MIN), MAX);
       await crossRateService.updateSettings(
         auth.id,
         {
-          defaultAmount: amount,
+          defaultAmount: finalAmount,
           selectedCurrencies: selectedCurrencies,
         },
         auth.token,

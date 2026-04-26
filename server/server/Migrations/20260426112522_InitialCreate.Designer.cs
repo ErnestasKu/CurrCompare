@@ -13,8 +13,8 @@ using server.Data;
 namespace server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260425075202_UpdateUserSchema")]
-    partial class UpdateUserSchema
+    [Migration("20260426112522_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,6 +25,56 @@ namespace server.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+
+            modelBuilder.Entity("server.Entities.CrossRateSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal?>("DefaultAmount")
+                        .HasPrecision(18, 8)
+                        .HasColumnType("numeric(18,8)");
+
+                    b.Property<List<string>>("SelectedCurrencies")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("CrossRateSettings");
+                });
+
+            modelBuilder.Entity("server.Entities.DashboardSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BaseCurrency")
+                        .HasMaxLength(3)
+                        .HasColumnType("character varying(3)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<List<string>>("Watchlist")
+                        .IsRequired()
+                        .HasColumnType("text[]");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .IsUnique();
+
+                    b.ToTable("DashboardSettings");
+                });
 
             modelBuilder.Entity("server.Entities.User", b =>
                 {
@@ -73,72 +123,22 @@ namespace server.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("server.Entities.UserCrossRateSettings", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<decimal?>("DefaultAmount")
-                        .HasPrecision(18, 8)
-                        .HasColumnType("numeric(18,8)");
-
-                    b.Property<List<string>>("SelectedCurrencies")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("UserCrossRateSettings");
-                });
-
-            modelBuilder.Entity("server.Entities.UserDashboardSettings", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("BaseCurrency")
-                        .HasMaxLength(3)
-                        .HasColumnType("character varying(3)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<List<string>>("Watchlist")
-                        .IsRequired()
-                        .HasColumnType("text[]");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId")
-                        .IsUnique();
-
-                    b.ToTable("UserDashboardSettings");
-                });
-
-            modelBuilder.Entity("server.Entities.UserCrossRateSettings", b =>
+            modelBuilder.Entity("server.Entities.CrossRateSettings", b =>
                 {
                     b.HasOne("server.Entities.User", "User")
                         .WithOne("CrossRateSettings")
-                        .HasForeignKey("server.Entities.UserCrossRateSettings", "UserId")
+                        .HasForeignKey("server.Entities.CrossRateSettings", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("server.Entities.UserDashboardSettings", b =>
+            modelBuilder.Entity("server.Entities.DashboardSettings", b =>
                 {
                     b.HasOne("server.Entities.User", "User")
                         .WithOne("DashboardSettings")
-                        .HasForeignKey("server.Entities.UserDashboardSettings", "UserId")
+                        .HasForeignKey("server.Entities.DashboardSettings", "UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

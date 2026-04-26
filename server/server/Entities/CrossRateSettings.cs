@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace server.Entities
 {
@@ -14,7 +14,7 @@ namespace server.Entities
         [ForeignKey("UserId")]
         public virtual User? User { get; set; }
 
-        [Range(0, 1_000_000_000_000)]
+        [Range(0, 9_999_999_999)]
         public decimal? DefaultAmount { get; set; }
 
         [Required]

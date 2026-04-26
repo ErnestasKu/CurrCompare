@@ -1,10 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
-using System;
-using System.IO;
-using System.Text.Json;
-using System.Xml.Linq;
 
 namespace server.Controllers
 {
@@ -26,22 +21,6 @@ namespace server.Controllers
             string jsonString = Newtonsoft.Json.JsonConvert.SerializeXmlNode(xmlDoc);
             return jsonString;
         }
-
-        //[HttpGet("supported-currencies")]
-        //public async Task<IActionResult> GetSupportedCurrencies()
-        //{
-        //    var client = _httpClientFactory.CreateClient("BankOfLithuania");
-        //    var response = await client.GetAsync("getCurrencyList");
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var xmlData = await response.Content.ReadAsStringAsync();
-        //        string jsonString = xmlToJson(xmlData);
-        //        return Ok(jsonString);
-        //    }
-
-        //    return StatusCode((int)response.StatusCode, "Error fetching data");
-        //}
 
         [HttpGet("currency-data")]
         public async Task<IActionResult> GetCurrencyData(
@@ -86,30 +65,5 @@ namespace server.Controllers
                 return StatusCode(503, "Service unavailable");
             }
         }
-
-        //[HttpGet("currency-historical")]
-        //public async Task<IActionResult> GetCurrencyHistorical(string currency, DateTime start, DateTime end)
-        //{
-        //    var client = _httpClientFactory.CreateClient("BankOfLithuania");
-        //    var content = new FormUrlEncodedContent(new[]
-        //    {
-        //        new KeyValuePair<string, string>("tp", "LT"),
-        //        new KeyValuePair<string, string>("ccy", currency),
-        //        new KeyValuePair<string, string>("dtFrom", start.ToString("yyyy-MM-dd")),
-        //        new KeyValuePair<string, string>("dtTo", end.ToString("yyyy-MM-dd"))
-        //    });
-
-
-        //    var response = await client.PostAsync("getFxRatesForCurrency", content);
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var xmlData = await response.Content.ReadAsStringAsync();
-        //        string jsonString = xmlToJson(xmlData);
-        //        return Ok(jsonString);
-        //    }
-
-        //    return StatusCode((int)response.StatusCode, "Error fetching data");
-        //}
     }
 }
