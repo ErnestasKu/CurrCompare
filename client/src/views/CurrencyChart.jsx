@@ -2,6 +2,7 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -10,82 +11,189 @@ import {
   YAxis,
 } from "recharts";
 
-export default function CurrencyChart({ selectedCurrency, currencyData }) {
-  // const formatYAxis = (tickItem) => tickItem.toFixed(2);
+export default function CurrencyChart({
+  selectedCurrency,
+  currencyData,
+  isComparison,
+  isPercentage,
+}) {
+  const prepareComparisonData = () => {
+    // if (!currencyData?.length) return [];
+    if (
+      !Array.isArray(currencyData) ||
+      currencyData.length === 0 ||
+      !currencyData[0]?.data
+    ) {
+      return [];
+    }
+
+    return currencyData[0].data.map((entry, index) => {
+      const dataPoint = { date: entry.date };
+
+      currencyData.forEach((group) => {
+        const firstRate = group.data[0]?.rate || 1;
+        const currentRate = group.data[index]?.rate || firstRate;
+
+        if (isPercentage) {
+          dataPoint[group.id] = parseFloat(
+            (((currentRate - firstRate) / firstRate) * 100).toFixed(4),
+          );
+        } else {
+          dataPoint[group.id] = currentRate;
+        }
+      });
+
+      return dataPoint;
+    });
+  };
+
+  const chartData = isComparison ? prepareComparisonData() : currencyData;
+  // const chartData = currencyData;
   const isUp =
+    !isComparison &&
     currencyData?.length > 1 &&
     currencyData[0].rate < currencyData[currencyData.length - 1].rate;
 
   const chartColor = isUp ? "var(--color-good)" : "var(--color-bad)";
   const gradientId = `gradient-${selectedCurrency}`;
+  const colors = [
+    "#3b82f6", // blue
+    "#8b5cf6", // violet
+    "#ec4899", // pink
+    "#f59e0b", // amber
+    "#06b6d4", // cyan
+    "#10b981", // emerald
+    "#6366f1", // indigo
+    "#f97316", // orange
+    "#14b8a6", // teal
+    "#a855f7", // purple
+  ];
+
   return (
     <div className="bg-bg-dark mx-auto w-full h-full overflow-auto rounded-xl">
-      {selectedCurrency && currencyData?.length > 0 && (
-        <ResponsiveContainer className={"overflow-hidden"}>
-          <AreaChart data={currencyData}>
-            <defs>
-              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-                <stop stopColor={chartColor} stopOpacity={0.2} />
-                <stop offset="100%" stopColor={chartColor} stopOpacity={0} />
-              </linearGradient>
-            </defs>
+      {(isComparison
+        ? currencyData?.length > 0
+        : selectedCurrency && currencyData?.length > 0) && (
+        <ResponsiveContainer
+          width="100%"
+          height="100%"
+          initialDimension={{ width: 1, height: 1 }}
+          className={"overflow-hidden"}
+        >
+          {isComparison ? (
+            <LineChart data={chartData}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke="var(--color-bg-lighter2)"
+              />
+              <XAxis
+                dataKey="date"
+                tick={{ fill: "#94a3b8", fontSize: 12 }}
+                minTickGap={30}
+                dy={8}
+              />
 
-            <CartesianGrid
-              strokeDasharray="3 3"
-              vertical={false}
-              stroke={"var(--color-bg-lighter2)"}
-            />
+              <YAxis
+                domain={["auto", "auto"]}
+                dx={-10}
+                tick={{
+                  fill: "var(--color-txt-dark)",
+                  fontSize: 10,
+                  fontWeight: 500,
+                }}
+                tickCount={5}
+              />
 
-            <XAxis
-              dataKey="date"
-              axisLine={false}
-              // tickLine={false}
-              tick={{ fill: "#94a3b8", fontSize: 12 }}
-              minTickGap={30}
-              dy={10}
-              interval={"preserveStartEnd"}
-            />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--color-bg-lighter)",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  padding: "8px",
+                  paddingBottom: "0px",
+                }}
+                formatter={(value, name) => [
+                  `${name}: ${value.toFixed(4)}${isPercentage ? "%" : ""}`,
+                ]}
+              />
+              <Legend verticalAlign="top" height={30} iconType="circle" />
+              {currencyData.map((group, index) => (
+                <Line
+                  key={group.id}
+                  type="monotone"
+                  dataKey={group.id}
+                  stroke={colors[index % colors.length]}
+                  strokeWidth={3}
+                  dot={false}
+                  animationDuration={1000}
+                />
+              ))}
+            </LineChart>
+          ) : (
+            <AreaChart data={currencyData}>
+              <defs>
+                <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                  <stop stopColor={chartColor} stopOpacity={0.2} />
+                  <stop offset="100%" stopColor={chartColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
 
-            <YAxis
-              // hide={false}
-              domain={["auto", "auto"]}
-              axisLine={false}
-              tickLine={false}
-              dx={-10}
-              tick={{
-                fill: "var(--color-txt-dark)",
-                fontSize: 10,
-                fontWeight: 500,
-              }}
-              tickCount={5}
-            />
-            <Tooltip
-              contentStyle={{
-                // backgroundColor: "#1e293b",
-                background: "var(--color-bg-lighter)",
-                border: "none",
-                borderRadius: "8px",
-                color: "#fff",
-              }}
-              // itemStyle={{ color: chartColor, fontWeight: "bold" }}
-              labelStyle={{ color: "var(--color-txt-dark)" }}
-              cursor={{ stroke: "var(--color-bg-lighter)", strokeWidth: 1 }}
-            />
-            <Area
-              type="monotone"
-              dataKey="rate"
-              stroke={chartColor}
-              strokeWidth={3}
-              fillOpacity={1}
-              fill={`url(#${gradientId})`}
-              animationDuration={1000}
-              activeDot={{
-                r: 5,
-                stroke: "var(--color-bg-main)",
-                strokeWidth: 2,
-              }}
-            />
-          </AreaChart>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                vertical={false}
+                stroke={"var(--color-bg-lighter2)"}
+              />
+
+              <XAxis
+                dataKey="date"
+                tick={{ fill: "var(--color-txt-alt)", fontSize: 12 }}
+                minTickGap={30}
+                axisLine={false}
+                dy={8}
+                interval={"preserveStartEnd"}
+              />
+
+              <YAxis
+                domain={["auto", "auto"]}
+                axisLine={false}
+                tickLine={false}
+                dx={-10}
+                tick={{
+                  fill: "var(--color-txt-dark)",
+                  fontSize: 10,
+                  fontWeight: 500,
+                }}
+                tickCount={5}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: "var(--color-bg-lighter)",
+                  border: "none",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  padding: "8px",
+                  paddingBottom: "0px",
+                }}
+                // labelStyle={{ color: "var(--color-txt-dark)" }}
+                cursor={{ stroke: "var(--color-bg-lighter)", strokeWidth: 1 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="rate"
+                stroke={chartColor}
+                strokeWidth={3}
+                fillOpacity={1}
+                fill={`url(#${gradientId})`}
+                animationDuration={1000}
+                // activeDot={{
+                //   r: 5,
+                //   stroke: "var(--color-bg-lighter)",
+                // }}
+              />
+            </AreaChart>
+          )}
         </ResponsiveContainer>
       )}
     </div>

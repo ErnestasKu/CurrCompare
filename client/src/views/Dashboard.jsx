@@ -1,35 +1,62 @@
+import { format, min, subDays } from "date-fns";
 import { useContext, useEffect, useState } from "react";
-import currencyList from "../utilities/currencyList";
-import DropdownCurrency from "./general/DropdownCurrency";
-import CurrencyChart from "./CurrencyChart";
-import CurrencyService from "../services/CurrencyService";
-import { format, subDays } from "date-fns";
-import { RxCross2 } from "react-icons/rx";
-import { LuSave, LuTrash2 } from "react-icons/lu";
-import { AuthContext } from "../AuthContext";
-import dashboardService from "../services/DashboardService";
 import { FaUndo } from "react-icons/fa";
+import { LuSave, LuTrash2 } from "react-icons/lu";
+import { RxActivityLog, RxGrid } from "react-icons/rx";
+import { AuthContext } from "../AuthContext";
+import CurrencyService from "../services/CurrencyService";
+import dashboardService from "../services/DashboardService";
+import currencyList from "../utilities/currencyList";
+import Dashboard_compare from "./Dashboard_compare";
+import Dashboard_grid from "./Dashboard_grid";
+import DropdownCurrency from "./general/DropdownCurrency";
+import Tabs from "./general/Tabs";
+import {
+  calculateStats,
+  transformCurrencyData,
+} from "../utilities/currencyCalculations";
+import aiService from "../services/AiService";
 
-export default function Dashboard({}) {
+export default function Dashboard() {
+  const DEFAULT_QUOTES = ["USD", "GBP", "JPY", "CHF", "AUD"];
+  const DEFAULT_BASE = "EUR";
+  const MAX_CURRENCIES = 10;
+
   const { auth } = useContext(AuthContext);
-  const [baseCurrency, setBaseCurrency] = useState("EUR");
-  const [startDate, setStartDate] = useState();
+  const [baseCurrency, setBaseCurrency] = useState(DEFAULT_BASE);
   const [endDate, setEndDate] = useState();
+  const [viewMode, setViewMode] = useState(1);
+  const [isPercent, setIsPercent] = useState(false);
 
-  const [selectedCurrencies, setSelectedCurrencies] = useState([
-    "USD",
-    "GBP",
-    "JPY",
-    "CHF",
-    "XAU",
-  ]);
+  const [selectedCurrencies, setSelectedCurrencies] = useState(DEFAULT_QUOTES);
   const [currencyData, setCurrencyData] = useState();
 
-  function handleSelectBase(item) {
-    setBaseCurrency(item);
+  const [AiCurrency, setAiCurrency] = useState();
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState();
+  const [lastFetchedCurrency, setLastFetchedCurrency] = useState("");
+
+  const today = format(subDays(new Date(), 1), "yyyy-MM-dd");
+  const startDate = format(subDays(today, 30), "yyyy-MM-dd");
+
+  function handleSelectBase(code) {
+    // swap with selected
+    if (selectedCurrencies.includes(code)) {
+      setSelectedCurrencies((prev) => {
+        const newList = [...prev];
+        const index = newList.indexOf(code);
+        newList[index] = baseCurrency;
+        return newList;
+      });
+      setBaseCurrency(code);
+      return;
+    }
+
+    setBaseCurrency(code);
   }
 
   function handleAddCurrency(code) {
+    if (selectedCurrencies.includes(code)) return;
     setSelectedCurrencies((prev) => [...prev, code]);
   }
 
@@ -38,6 +65,34 @@ export default function Dashboard({}) {
   }
 
   function handleChangeCurrency(index, code) {
+    // no change
+    if (selectedCurrencies[index] === code) return;
+
+    // swap with base
+    if (code === baseCurrency) {
+      setBaseCurrency(selectedCurrencies[index]);
+      setSelectedCurrencies((prev) => {
+        const newList = [...prev];
+        newList[index] = code;
+        return newList;
+      });
+      return;
+    }
+
+    // swap with existing in list
+    if (selectedCurrencies.includes(code)) {
+      setSelectedCurrencies((prev) => {
+        const newList = [...prev];
+        const existingIndex = newList.indexOf(code);
+        const temp = newList[index];
+        newList[index] = code;
+        newList[existingIndex] = temp;
+        return newList;
+      });
+      return;
+    }
+
+    // change to unused
     setSelectedCurrencies((prev) => {
       const newList = [...prev];
       newList[index] = code;
@@ -46,8 +101,8 @@ export default function Dashboard({}) {
   }
 
   const handleDefaultSettings = () => {
-    setBaseCurrency("EUR");
-    setSelectedCurrencies(["USD", "GBP", "JPY", "CHF", "XAU"]);
+    setBaseCurrency(DEFAULT_BASE);
+    setSelectedCurrencies(DEFAULT_QUOTES);
   };
 
   const handleSaveSettings = async () => {
@@ -81,17 +136,44 @@ export default function Dashboard({}) {
     }
   };
 
+  const loadPredictions = async (target) => {
+    try {
+      setIsAiLoading(true);
+
+      const targetEntry = currencyData?.find((item) => item.id === target);
+      const stats = calculateStats(targetEntry);
+      const payload = {
+        baseCurrency: baseCurrency,
+        targetCurrency: target,
+        startDate: startDate,
+        endDate: today,
+        stats: {
+          max: stats.max,
+          min: stats.min,
+          change: stats.change,
+          current: stats.current,
+        },
+      };
+      const response = await aiService.getAiForecast(payload, auth.token);
+      if (response?.prediction) {
+        setAiMessage(response.prediction);
+        setLastFetchedCurrency(target);
+      }
+    } catch (error) {
+      console.error("Failed to load predictions", error);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
 
     async function GetHistorical() {
-      const today = format(new Date(), "yyyy-MM-dd");
-      const startDate = format(subDays(today, 30), "yyyy-MM-dd");
-      const currencyString = selectedCurrencies.join(",");
-
       try {
         const cs = new CurrencyService();
+        const currencyString = selectedCurrencies.join(",");
         const data = await cs.getCurrencyHistorical(
           baseCurrency,
           currencyString,
@@ -99,7 +181,14 @@ export default function Dashboard({}) {
           today,
           signal,
         );
-        setCurrencyData(data);
+
+        if (!data) {
+          console.warn("No data received from service");
+          return;
+        }
+
+        const reformedData = transformCurrencyData(selectedCurrencies, data);
+        setCurrencyData(reformedData);
       } catch (error) {
         if (error.name === "AbortError") {
           console.log("Fetch aborted");
@@ -190,74 +279,55 @@ export default function Dashboard({}) {
           </div>
           <div className="w-64">
             <DropdownCurrency
-              isDisabled={selectedCurrencies?.length >= 10}
+              isDisabled={selectedCurrencies?.length >= MAX_CURRENCIES}
               data={currencyList.currencies}
               setSelected={handleAddCurrency}
+              disabled={[...selectedCurrencies, baseCurrency]}
             />
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {selectedCurrencies.map((code, index) => {
-          const filteredData =
-            currencyData?.filter((item) => item.quote === code) || [];
-          const rate = filteredData[0]?.rate;
+      <Tabs
+        setTab={setViewMode}
+        Tab={viewMode}
+        options={[1, 2]}
+        labels={[
+          <>
+            <RxGrid /> Grid
+          </>,
+          <>
+            <RxActivityLog /> Comparison
+          </>,
+        ]}
+      />
 
-          return (
-            <div key={index} className="bubble flex gap-4 group">
-              <div className="flex flex-col h-full w-2/5 min-w-0">
-                <div className="flex justify-between">
-                  <button
-                    className="opacity-0 group-hover:opacity-100 text-txt-main hover:text-bad text-2xl w-fit rounded-2xl p-2 hover:bg-bad/10 transition"
-                    onClick={() => handleRemoveCurrency(index)}
-                  >
-                    <RxCross2 />
-                  </button>
-                  <span className="text-sm uppercase px-2 py-1 bg-bg-dark rounded text-[10px] font-semibold border border-bg-border my-auto">
-                    {baseCurrency}
-                    <span className="text-primary"> / </span>
-                    {code}
-                  </span>
-                </div>
-
-                <div className="flex flex-col flex-1">
-                  <div className="flex flex-col flex-1 justify-center py-4 bg">
-                    <p className="text-txt-dark text-xs font-semibold uppercase truncate">
-                      {currencyList.currencies?.[code]?.name || "Currency"}
-                    </p>
-                    <span className="text-2xl lg:text-3xl xl:text-4xl font-semibold mb-4 font-mono">
-                      {currencyList.currencies?.[code] &&
-                      filteredData[0]?.rate ? (
-                        <>
-                          <span className="text-primary">
-                            {currencyList.currencies[code].symbol}
-                          </span>
-                          {filteredData[filteredData.length - 1].rate}
-                        </>
-                      ) : (
-                        "..."
-                      )}
-                    </span>
-                  </div>
-
-                  <DropdownCurrency
-                    data={currencyList.currencies}
-                    selected={code}
-                    setSelected={(c) => handleChangeCurrency(index, c)}
-                  />
-                </div>
-              </div>
-              <div className="flex-1">
-                <CurrencyChart
-                  selectedCurrency={code}
-                  currencyData={filteredData}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+      {viewMode === 1 ? (
+        <Dashboard_grid
+          selectedCurrencies={selectedCurrencies}
+          currencyData={currencyData}
+          baseCurrency={baseCurrency}
+          setSelectedCurrencies={setSelectedCurrencies}
+          handleRemoveCurrency={handleRemoveCurrency}
+          handleChangeCurrency={handleChangeCurrency}
+        />
+      ) : (
+        <Dashboard_compare
+        auth={auth}
+          selectedCurrencies={selectedCurrencies}
+          currencyData={currencyData}
+          baseCurrency={baseCurrency}
+          handleRemoveCurrency={handleRemoveCurrency}
+          isPercent={isPercent}
+          setIsPercent={setIsPercent}
+          loadPredictions={loadPredictions}
+          aiMessage={aiMessage}
+          AiCurrency={AiCurrency}
+          setAiCurrency={setAiCurrency}
+          isAiLoading={isAiLoading}
+          lastFetchedCurrency={lastFetchedCurrency}
+        />
+      )}
     </div>
   );
 }

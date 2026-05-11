@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import currencyList from "../utilities/currencyList";
 import DropdownCurrency from "./general/DropdownCurrency";
 import CurrencyChart from "./CurrencyChart";
@@ -14,46 +14,66 @@ import {
 import useClickOutside from "../utilities/useClickOutside";
 import DatePicker from "react-datepicker";
 import CalendarHeader from "./general/CalendarHeader";
+import { RxCross2 } from "react-icons/rx";
+import Tabs from "./general/Tabs";
+import { LuTrendingDown, LuTrendingUp } from "react-icons/lu";
+import {
+  calculateStats,
+  transformCurrencyData,
+} from "../utilities/currencyCalculations";
+import Dropdown from "./general/Dropdown";
+import aiService from "../services/AiService";
+import { AuthContext } from "../AuthContext";
 
 export default function Historic() {
+  const MAX_CURRENCIES = 7;
+
+  const { auth } = useContext(AuthContext);
   const [baseCurrency, setBaseCurrency] = useState("EUR");
-  const [targetCurrency, setTargetCurrency] = useState("USD");
+  const [selectedCurrencies, setSelectedCurrencies] = useState(["USD"]);
 
   const [startDate, setStartDate] = useState(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState(new Date());
 
-  const [currencyData, setCurrencyData] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [AiCurrency, setAiCurrency] = useState();
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [aiMessage, setAiMessage] = useState();
+  const [lastFetchedCurrency, setLastFetchedCurrency] = useState("");
+
+  const [currencyData, setCurrencyData] = useState();
+  const [isPercent, setIsPercent] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
     const signal = controller.signal;
 
     async function GetHistorical() {
-      if (!baseCurrency || !targetCurrency || !startDate || !endDate) return;
+      if (!baseCurrency || !selectedCurrencies || !startDate || !endDate)
+        return;
 
-      setIsLoading(true);
       try {
         const cs = new CurrencyService();
+        const currencyString = selectedCurrencies.join(",");
         const data = await cs.getCurrencyHistorical(
           baseCurrency,
-          targetCurrency,
+          currencyString,
           format(startDate, "yyyy-MM-dd"),
           format(endDate, "yyyy-MM-dd"),
           signal,
         );
-        setCurrencyData(data);
+
+        if (!data) {
+          console.warn("No data received from service");
+          return;
+        }
+
+        const reformedData = transformCurrencyData(selectedCurrencies, data);
+        setCurrencyData(reformedData);
       } catch (error) {
-        // console.error("Failed to fetch history:", error);
         if (error.name === "AbortError") {
           console.log("Fetch aborted");
         } else {
           console.error("Failed to fetch history:", error);
-        }
-      } finally {
-        // setIsLoading(false);
-        if (!signal.aborted) {
-          setIsLoading(false);
         }
       }
     }
@@ -61,29 +81,62 @@ export default function Historic() {
     return () => {
       controller.abort();
     };
-  }, [baseCurrency, targetCurrency, startDate, endDate]);
+  }, [baseCurrency, selectedCurrencies, startDate, endDate]);
 
-  const currentRate = currencyData?.[currencyData?.length - 1]?.rate;
-  const symbol = currencyList.currencies?.[targetCurrency]?.symbol || "";
-  const rates = currencyData?.map((item) => item.rate) || [];
-  const maxValue = rates.length > 0 ? Math.max(...rates) : 0;
-  const minValue = rates.length > 0 ? Math.min(...rates) : 0;
-  const sum = rates.length > 0 ? rates.reduce((sum, val) => sum + val, 0) : 0;
-  const averageValue = rates.length > 0 ? sum / rates.length : 0;
-  const percentageChange =
-    rates.length > 1
-      ? ((rates[rates.length - 1] - rates[0]) / rates[0]) * 100
-      : 0;
-  const stdDeviation =
-    rates.length > 1
-      ? Math.sqrt(
-          rates.reduce(
-            (sumSTD, val) => sumSTD + Math.pow(val - averageValue, 2),
-            0,
-          ) /
-            (rates.length - 1),
-        )
-      : 0;
+  const loadPredictions = async (target) => {
+    try {
+      setIsAiLoading(true);
+
+      const targetEntry = currencyData?.find((item) => item.id === target);
+      const stats = calculateStats(targetEntry);
+      const payload = {
+        baseCurrency: baseCurrency,
+        targetCurrency: target,
+        startDate: startDate,
+        endDate: endDate,
+        stats: {
+          max: stats.max,
+          min: stats.min,
+          change: stats.change,
+          current: stats.current,
+        },
+      };
+      const response = await aiService.getAiHistorical(payload, auth.token);
+      if (response?.historical) {
+        setAiMessage(response.historical);
+        setLastFetchedCurrency(target);
+      }
+    } catch (error) {
+      console.error("Failed to load historic analysis", error);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  function handleAddCurrency(code) {
+    if (selectedCurrencies.includes(code)) return;
+    setSelectedCurrencies((prev) => [...prev, code]);
+  }
+
+  function handleSelectBase(code) {
+    // swap with selected
+    if (selectedCurrencies.includes(code)) {
+      setSelectedCurrencies((prev) => {
+        const newList = [...prev];
+        const index = newList.indexOf(code);
+        newList[index] = baseCurrency;
+        return newList;
+      });
+      setBaseCurrency(code);
+      return;
+    }
+
+    setBaseCurrency(code);
+  }
+
+  function handleRemoveCurrency(index) {
+    setSelectedCurrencies((prev) => prev.filter((_, i) => i !== index));
+  }
 
   return (
     <div className="page-default space-y-6">
@@ -95,16 +148,17 @@ export default function Historic() {
           <DropdownCurrency
             data={currencyList.currencies}
             selected={baseCurrency}
-            setSelected={setBaseCurrency}
+            setSelected={handleSelectBase}
           />
         </div>
 
         <div>
-          <label className="page-label">Target Currency</label>
+          <label className="page-label">Target Currencies</label>
           <DropdownCurrency
+            isDisabled={selectedCurrencies?.length >= MAX_CURRENCIES}
             data={currencyList.currencies}
-            selected={targetCurrency}
-            setSelected={setTargetCurrency}
+            setSelected={handleAddCurrency}
+            disabled={[...selectedCurrencies, baseCurrency]}
           />
         </div>
 
@@ -118,7 +172,6 @@ export default function Historic() {
                 const dayGap = differenceInDays(endDate, date);
                 if (dayGap < 0 || dayGap > 3700) {
                   setEndDate(addDays(date, 30));
-                  // alert("Date gap limit is 10 years.");
                 }
               }
             }}
@@ -140,7 +193,6 @@ export default function Historic() {
                 const dayGap = differenceInDays(date, startDate);
                 if (dayGap < 0 || dayGap > 3700) {
                   setStartDate(addDays(date, -30));
-                  // alert("Date gap limit is 10 years.");
                 }
               }
             }}
@@ -153,91 +205,182 @@ export default function Historic() {
         </div>
       </div>
 
-      <div className="bubble flex flex-col lg:flex-row gap-8">
-        <div className="w-full lg:w-1/3 flex flex-col border-r border-bg-border pb-6 pr-8">
-          <div className="flex justify-end ">
-            <span className="px-4 py-2 mb-8 bg-bg-dark rounded text-sm font-semibold border border-bg-border uppercase">
-              {baseCurrency}
-              <span className="text-primary"> / </span>
-              {targetCurrency}
-            </span>
+      <div className="flex w-full gap-4">
+        <div className="space-y-4 w-[30%]">
+          {auth && (
+            <div className="flex gap-4">
+              <div className="bubble w-full h-fit">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <span className="page-label">Currency</span>
+                    <Dropdown
+                      data={selectedCurrencies}
+                      selected={AiCurrency}
+                      setSelected={setAiCurrency}
+                    />
+                  </div>
+                  <button
+                    onClick={() =>
+                      loadPredictions(selectedCurrencies[AiCurrency])
+                    }
+                    disabled={isAiLoading}
+                    className={`text-bg-dark font-mono font-bold w-full p-2 rounded-xl ${
+                      isAiLoading
+                        ? "bg-primary-hover cursor-not-allowed"
+                        : "bg-primary hover:bg-primary-hover"
+                    }`}
+                  >
+                    Get AI historical analysis
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="page-label uppercase text-txt-dark">
+            Market Performance
           </div>
+          <div className="grid grid-cols-1 gap-4">
+            {(currencyData || []).map((group) => {
+              const stats = calculateStats(group);
+              const symbol = currencyList.currencies[baseCurrency].symbol;
+              return (
+                <div key={group.id} className="bubble bg-bg-dark/50">
+                  <div className="flex justify-between items-center mb-3">
+                    <div>
+                      <span className="text-xs text-txt-dark font-mono">
+                        {baseCurrency} /
+                      </span>
+                      <div className="text-xl font-bold">{group.id}</div>
+                    </div>
+                    <div
+                      className={`text-right ${stats.change >= 0 ? "text-good" : "text-bad"}`}
+                    >
+                      <div className="flex items-center gap-1 font-bold">
+                        {stats.change >= 0 ? (
+                          <LuTrendingUp />
+                        ) : (
+                          <LuTrendingDown />
+                        )}
+                        {stats.change.toFixed(2)}%
+                      </div>
+                      <p className="text-[10px] uppercase font-bold opacity-70">
+                        Change
+                      </p>
+                    </div>
+                  </div>
 
-          <div className="text-txt-dark">
-            <div className="flex justify-between">
-              Highest:
-              <span className="font-semibold text-good">
-                {symbol}
-                {maxValue.toFixed(4)}
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              Lowest:
-              <span className="font-semibold text-red-500">
-                {symbol}
-                {minValue.toFixed(4)}
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              Average:
-              <span className="font-semibold text-txt-main">
-                {symbol}
-                {averageValue.toFixed(4)}
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              Percent change:
-              <span
-                className={`font-semibold ${rates[0] > rates[rates.length - 1] ? "text-bad" : "text-good"}`}
-              >
-                {percentageChange.toFixed(2)}%
-              </span>
-            </div>
-
-            <div className="flex justify-between">
-              Standard deviation:
-              <span className="font-semibold text-txt-main">
-                {stdDeviation.toFixed(4)}
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-col flex-1 justify-end mb-8">
-            <p className="text-txt-dark font-semibold uppercase">
-              {currencyList.currencies?.[targetCurrency]?.name || "Currency"}
-            </p>
-
-            <div className="font-mono text-5xl font-bold">
-              {isLoading ? (
-                <span className="animate-pulse">...</span>
-              ) : (
-                <>
-                  <span className="text-primary">{symbol}</span>
-                  {currentRate}
-                </>
-              )}
-            </div>
-          </div>
-
-          <div className="flex justify-between">
-            <span className="text-txt-dark">Period:</span>
-            <span className="font-semibold text-primary">
-              {format(startDate, "yyyy-MM-dd")}
-              <span className="text-txt-main">{" – "}</span>
-              {format(endDate, "yyyy-MM-dd")}
-            </span>
+                  <div className="grid grid-cols-2 gap-y-2 gap-x-4 border-t border-bg-border pt-3">
+                    <StatItem
+                      label="Highest"
+                      value={stats.max}
+                      symbol={symbol}
+                      color="text-good"
+                    />
+                    <StatItem
+                      label="Lowest"
+                      value={stats.min}
+                      symbol={symbol}
+                      color="text-bad"
+                    />
+                    <StatItem
+                      label="Average"
+                      value={stats.avg}
+                      symbol={symbol}
+                    />
+                    <StatItem
+                      label="Current"
+                      value={stats.current}
+                      symbol={symbol}
+                    />
+                    <StatItem label="Standard deviation" value={stats.stdDev} />
+                  </div>
+                </div>
+              );
+            })}
+            {selectedCurrencies.length === 0 && (
+              <p className="text-sm text-txt-dark italic">
+                Select a currency to see performance stats.
+              </p>
+            )}
           </div>
         </div>
+        <div className="flex-1 space-y-4">
+          <div className="bubble">
+            <div className="flex mb-2 justify-between">
+              <div className="flex items-center space-x-2">
+                {selectedCurrencies.map((code, index) => (
+                  <span
+                    key={code}
+                    className="flex items-center gap-1 p-2 py-1 rounded bg-bg-dark border border-bg-border font-mono"
+                  >
+                    {code}
+                    <RxCross2
+                      className="font-semibold cursor-pointer hover:text-bad hover:bg-bad/10"
+                      onClick={() => handleRemoveCurrency(index)}
+                    />
+                  </span>
+                ))}
+              </div>
 
-        <div className="flex-1 h-100">
-          <CurrencyChart
-            selectedCurrency={targetCurrency}
-            currencyData={currencyData}
-          />
+              <Tabs
+                setTab={setIsPercent}
+                Tab={isPercent}
+                options={[false, true]}
+                labels={["Flat", "%"]}
+              />
+            </div>
+
+            <div className="flex-1 h-100">
+              <CurrencyChart
+                isComparison={true}
+                selectedCurrency={selectedCurrencies}
+                currencyData={currencyData}
+                isPercentage={isPercent}
+              />
+            </div>
+          </div>
+
+          {isAiLoading ? (
+            <div className="animate-spin mx-auto ml-8 rounded-full h-12 w-12 border-b-2 border-primary" />
+          ) : aiMessage ? (
+            <div className="bubble flex-1">
+              <div className="page-label uppercase text-txt-dark">
+                AI insight:
+                <span className="text-primary">
+                  {" " + lastFetchedCurrency}
+                </span>
+              </div>
+              <p className="bg-bg-dark p-4 border-bg-border border rounded-2xl text-sm leading-relaxed whitespace-pre-wrap">
+                {aiMessage.split("\n").map((line, index) => (
+                  <span key={index}>
+                    {line}
+                    <br />
+                  </span>
+                ))}
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
+    </div>
+  );
+}
+function StatItem({
+  label,
+  value,
+  symbol,
+  color = "text-txt-main",
+  className,
+}) {
+  return (
+    <div>
+      <p className="text-[10px] uppercase tracking-wider text-txt-dark">
+        {label}
+      </p>
+      <p className={`font-mono font-semibold ${color}`}>
+        {symbol}
+        {value.toFixed(4)}
+      </p>
     </div>
   );
 }

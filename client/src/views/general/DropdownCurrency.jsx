@@ -53,10 +53,8 @@ export default function DropdownCurrency({
         <button
           disabled={isDisabled}
           className={`
-            w-full px-4 py-2
             flex items-center justify-center
-            text-2xl hover:text-primary
-            rounded-xl border
+            hover:text-primary page-select-field
             ${open ? "border-primary" : "border-bg-border"} 
             ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
           onClick={handleToggle}
@@ -99,7 +97,7 @@ export default function DropdownCurrency({
               hover:bg-bg-lighter2
               disabled:bg-bg-lighter disabled:text-bg-lighter2 
               ${key === selected ? "text-primary font-semibold" : ""} `}
-                disabled={key === disabled}
+                disabled={disabled?.includes(key)}
               >
                 <span className=" mr-1 text-primary font-mono w-8 bg-bg-dark/50 text-center rounded text-xs flex items-center justify-center">
                   {item.symbol}

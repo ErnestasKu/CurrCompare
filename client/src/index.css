@@ -19,6 +19,7 @@
 
   --color-txt-main: rgba(255, 255, 255, 0.87);
   --color-txt-dark: rgba(255, 255, 255, 0.5);
+  --color-txt-alt: #8396a7;
 }
 
 :root {

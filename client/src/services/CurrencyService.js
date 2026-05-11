@@ -8,16 +8,12 @@ export default class CurrencyService {
     const queryString = params.toString();
 
     const url = `${import.meta.env.VITE_URL}/api/currency/currency-data${queryString ? `?${queryString}` : ""}`;
-
-    try {
-      const response = await fetch(url, { signal });
-      if (!response.ok) {
-        throw new Error(response.status);
-      }
+    
+    const response = await fetch(url, { signal });
+    if (response.ok) {
       return await response.json();
-    } catch (error) {
-      console.error("Failed to fetch currencies:", error);
-      return null;
+    } else {
+      throw new Error(`API Error: ${response.status}`);
     }
   }
 }
