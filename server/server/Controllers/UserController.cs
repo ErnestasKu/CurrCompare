@@ -9,8 +9,9 @@ namespace server.Controllers
     [ApiController]
     public class UserController(AppDbContext context) : ControllerBase
     {
+        // returns all users
         [HttpGet("{userId:guid}")]
-        public async Task<ActionResult> GetUserInfo(Guid userId)
+        public async Task<ActionResult<UserInfoDto>> GetUserInfo(Guid userId)
         {
             if (userId == Guid.Empty)
                 return BadRequest(new { message = "Id is empty" });
