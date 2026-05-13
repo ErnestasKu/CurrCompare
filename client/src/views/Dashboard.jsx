@@ -288,19 +288,23 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <Tabs
-        setTab={setViewMode}
-        Tab={viewMode}
-        options={[1, 2]}
-        labels={[
-          <>
-            <RxGrid /> Grid
-          </>,
-          <>
-            <RxActivityLog /> Comparison
-          </>,
-        ]}
-      />
+      <div className="w-full bg-linear-to-r from-transparent via-primary to-transparent h-px mb-3"></div>
+
+      <div className="flex justify-end my-3">
+        <Tabs
+          setTab={setViewMode}
+          Tab={viewMode}
+          options={[1, 2]}
+          labels={[
+            <>
+              <RxGrid /> Grid
+            </>,
+            <>
+              <RxActivityLog /> Comparison
+            </>,
+          ]}
+        />
+      </div>
 
       {viewMode === 1 ? (
         <Dashboard_grid
@@ -313,7 +317,7 @@ export default function Dashboard() {
         />
       ) : (
         <Dashboard_compare
-        auth={auth}
+          auth={auth}
           selectedCurrencies={selectedCurrencies}
           currencyData={currencyData}
           baseCurrency={baseCurrency}

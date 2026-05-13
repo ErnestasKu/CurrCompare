@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "./react-datepicker.css";
-/* @import "react-day-picker/style.css"; */
 
 @theme {
   --color-primary: rgb(132, 242, 42);
@@ -43,7 +42,7 @@
   }
 
   .page-title {
-    @apply text-primary text-center text-5xl font-bold font-mono tracking-wider mask-radial-from-neutral-500;
+    @apply bg-linear-to-r from-primary-hover via-primary to-primary-hover bg-clip-text text-transparent text-center text-5xl font-bold font-mono tracking-wider;
   }
 
   .page-label {
@@ -78,12 +77,3 @@
     scrollbar-color: var(--color-primary) var(--color-bg-dark);
   }
 }
-
-/* select {
-  accent-color: #ff5733; 
-}
-
-option:checked {
-  background-color: #ff5733 !important;
-  color: white;
-} */
