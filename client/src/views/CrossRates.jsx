@@ -35,7 +35,6 @@ export default function CrossRates() {
           { EUR: 1 },
         );
         setRates(ratesMap);
-        console.log(ratesMap);
       } catch (error) {
         console.error("Matrix fetch failed", error);
       }

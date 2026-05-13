@@ -31,7 +31,7 @@ export default function Dashboard() {
   const [selectedCurrencies, setSelectedCurrencies] = useState(DEFAULT_QUOTES);
   const [currencyData, setCurrencyData] = useState();
 
-  const [AiCurrency, setAiCurrency] = useState();
+  const [AiCurrency, setAiCurrency] = useState(0);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiMessage, setAiMessage] = useState();
   const [lastFetchedCurrency, setLastFetchedCurrency] = useState("");

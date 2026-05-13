@@ -35,13 +35,18 @@ export default function Historic() {
   const [startDate, setStartDate] = useState(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState(new Date());
 
-  const [AiCurrency, setAiCurrency] = useState();
+  const [AiCurrency, setAiCurrency] = useState(0);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [aiMessage, setAiMessage] = useState();
   const [lastFetchedCurrency, setLastFetchedCurrency] = useState("");
 
   const [currencyData, setCurrencyData] = useState();
   const [isPercent, setIsPercent] = useState(false);
+  const isAiDisabled =
+    isAiLoading ||
+    AiCurrency === null ||
+    AiCurrency === undefined ||
+    !selectedCurrencies[AiCurrency];
 
   useEffect(() => {
     const controller = new AbortController();
@@ -223,12 +228,12 @@ export default function Historic() {
                     onClick={() =>
                       loadPredictions(selectedCurrencies[AiCurrency])
                     }
-                    disabled={isAiLoading}
+                    disabled={isAiDisabled}
                     className={`text-bg-dark font-mono font-bold w-full p-2 rounded-xl ${
-                      isAiLoading
+                      isAiDisabled
                         ? "bg-primary-hover cursor-not-allowed"
                         : "bg-primary hover:bg-primary-hover"
-                    }`}
+                    } disabled:opacity-50`}
                   >
                     Get AI historical analysis
                   </button>

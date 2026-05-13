@@ -55,11 +55,11 @@ namespace server.Controllers
 
                 Return EXACTLY in this format:
 
-                Sentiment: Bullish | Bearish | Neutral
+                Sentiment: [Bullish | Bearish | Neutral]
 
-                Short-term outlook: 1-3 sentences
+                Short-term outlook: [1-3 sentences]
 
-                Observation: technical analysis
+                Observation: [technical analysis]
 
                 Risk: key risk factor
 

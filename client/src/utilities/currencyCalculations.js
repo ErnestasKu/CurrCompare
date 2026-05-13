@@ -1,5 +1,4 @@
 export const calculateStats = (entry) => {
-  console.log(entry);
   if (!entry || entry.length === 0) return null;
 
   const rates = entry.data.map((item) => item.rate);

@@ -20,6 +20,12 @@ export default function Dashboard_compare({
   isAiLoading,
   lastFetchedCurrency,
 }) {
+  const isAiDisabled =
+    isAiLoading ||
+    AiCurrency === null ||
+    AiCurrency === undefined ||
+    !selectedCurrencies[AiCurrency];
+    
   return (
     <div className="space-y-6">
       <div className="bubble flex-1">
@@ -70,12 +76,12 @@ export default function Dashboard_compare({
               </div>
               <button
                 onClick={() => loadPredictions(selectedCurrencies[AiCurrency])}
-                disabled={isAiLoading}
+                disabled={isAiDisabled}
                 className={`text-bg-dark font-mono font-bold w-full p-2 rounded-xl ${
-                  isAiLoading
+                  isAiDisabled
                     ? "bg-primary-hover cursor-not-allowed"
                     : "bg-primary hover:bg-primary-hover"
-                }`}
+                } disabled:opacity-50`}
               >
                 Get AI forecast
               </button>
