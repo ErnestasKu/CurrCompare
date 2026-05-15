@@ -25,7 +25,7 @@ export default function Dashboard_compare({
     AiCurrency === null ||
     AiCurrency === undefined ||
     !selectedCurrencies[AiCurrency];
-    
+
   return (
     <div className="space-y-6">
       <div className="bubble flex-1">
@@ -62,6 +62,7 @@ export default function Dashboard_compare({
         </div>
       </div>
 
+      {/* ai features only for logged in users */}
       {auth && (
         <div className="flex gap-4">
           <div className="bubble w-[30%] h-fit">

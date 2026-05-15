@@ -8,19 +8,14 @@ import { LuSave, LuTrash2 } from "react-icons/lu";
 import crossRateService from "../services/CrossRateService";
 
 export default function CrossRates() {
+  const DEFAULT_QUOTES = ["EUR", "USD", "GBP", "JPY", "AUD", "CAD", "XAU"];
+
   const { auth } = useContext(AuthContext);
-  const [selectedCurrencies, setSelectedCurrencies] = useState([
-    "EUR",
-    "USD",
-    "GBP",
-    "JPY",
-    "AUD",
-    "CAD",
-    "XAU",
-  ]);
+  const [selectedCurrencies, setSelectedCurrencies] = useState(DEFAULT_QUOTES);
   const [rates, setRates] = useState({});
   const [amount, setAmount] = useState(1);
 
+  // only needs to fetch data once
   useEffect(() => {
     async function fetchMatrixData() {
       try {
@@ -42,6 +37,7 @@ export default function CrossRates() {
     fetchMatrixData();
   }, []);
 
+  // cell value
   const getCrossRate = (rowCurrency, colCurrency) => {
     if (rowCurrency === colCurrency) return (1 * amount).toFixed(4);
     if (!rates[rowCurrency] || !rates[colCurrency]) return "—";
@@ -56,11 +52,13 @@ export default function CrossRates() {
     setSelectedCurrencies((prev) => prev.filter((c, i) => index !== i));
   };
 
+  // reverts to default layout
   const handleDefaultSettings = () => {
     setAmount(1);
-    setSelectedCurrencies(["EUR", "USD", "GBP", "JPY", "AUD", "CAD", "XAU"]);
+    setSelectedCurrencies(DEFAULT_QUOTES);
   };
 
+  // save currency layout to db
   const handleSaveSettings = async () => {
     try {
       const MIN = 0;
@@ -79,6 +77,7 @@ export default function CrossRates() {
     }
   };
 
+  // delete currency layout from db
   const handleDeleteSettings = async () => {
     try {
       await crossRateService.updateSettings(
@@ -106,6 +105,7 @@ export default function CrossRates() {
     });
   }
 
+  // load user saved layout if logged in
   useEffect(() => {
     const fetchUserSettings = async () => {
       if (auth?.id && auth?.token) {
@@ -134,6 +134,7 @@ export default function CrossRates() {
 
   return (
     <div className="page-default space-y-6">
+      {/* option buttons */}
       <div className="md:flex justify-between items-end">
         <div className="bubble">
           <div className="flex items-center w-64 gap-2 pb-1">
@@ -180,6 +181,8 @@ export default function CrossRates() {
           </div>
         </div>
       </div>
+
+      {/* currency data */}
       <div className="bubble overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -259,7 +262,9 @@ export default function CrossRates() {
                     <td
                       key={`${index}`}
                       className={`text-lg border border-bg-border bg-bg-darker font-mono text-center hover:bg-primary-hover/50 ${
-                        rowCode === colCode ? "text-txt-dark" : "text-txt-main"
+                        rowCode === colCode
+                          ? "text-txt-dark bg-bg-dark/50"
+                          : "text-txt-main"
                       }`}
                     >
                       <span className="text-primary">

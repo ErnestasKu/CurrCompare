@@ -4,6 +4,7 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import Dropdown from "./Dropdown";
 import CalendarDropdown from "./CalendarDropdown";
 
+// replacement for the default datepicker header
 export default function CalendarHeader({
   date,
   changeYear,
@@ -13,9 +14,11 @@ export default function CalendarHeader({
   prevMonthButtonDisabled,
   nextMonthButtonDisabled,
 }) {
+  // frankfurter API supports from 1948
+  const FROM_DATE = 1948;
   const currentYear = getYear(new Date());
-  const years = Array.from({ length: currentYear - 1900 + 1 }, (_, i) =>
-    (1900 + i).toString(),
+  const years = Array.from({ length: currentYear - FROM_DATE + 1 }, (_, i) =>
+    (FROM_DATE + i).toString(),
   ).reverse();
 
   const months = [

@@ -1,4 +1,6 @@
+// Admin only functions
 class AdminService {
+  //  fetches a list of every user
   async getUsers(token) {
     const url = `${import.meta.env.VITE_URL}/api/admin/users`;
 
@@ -14,10 +16,11 @@ class AdminService {
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
     }
-    
+
     return await response.json();
   }
 
+  // sets role for selected user
   async updateRole(id, newRole, token) {
     const url = `${import.meta.env.VITE_URL}/api/admin/users/${id}/role`;
 
@@ -32,6 +35,7 @@ class AdminService {
     });
   }
 
+  // deletes selected user and their associated data
   async deleteUser(id, token) {
     const url = `${import.meta.env.VITE_URL}/api/admin/users/${id}`;
 

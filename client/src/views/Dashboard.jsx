@@ -100,11 +100,13 @@ export default function Dashboard() {
     });
   }
 
+  // sets currency layout to default
   const handleDefaultSettings = () => {
     setBaseCurrency(DEFAULT_BASE);
     setSelectedCurrencies(DEFAULT_QUOTES);
   };
 
+  // save currency layout to db
   const handleSaveSettings = async () => {
     try {
       await dashboardService.updateSettings(
@@ -120,6 +122,7 @@ export default function Dashboard() {
     }
   };
 
+  // delete currency layout from db
   const handleDeleteSettings = async () => {
     try {
       await dashboardService.updateSettings(
@@ -136,6 +139,7 @@ export default function Dashboard() {
     }
   };
 
+  // get AI analysis
   const loadPredictions = async (target) => {
     try {
       setIsAiLoading(true);
@@ -166,7 +170,10 @@ export default function Dashboard() {
     }
   };
 
+  // fetches new data on state changes
   useEffect(() => {
+    // abort controller in case of rapid changes causing race conditions
+    // cancels previous fetch requrests if new ones come in
     const controller = new AbortController();
     const signal = controller.signal;
 
@@ -203,6 +210,7 @@ export default function Dashboard() {
     };
   }, [baseCurrency, selectedCurrencies]);
 
+  // load user saved layout if logged in
   useEffect(() => {
     const fetchUserSettings = async () => {
       if (auth?.id && auth?.token) {
@@ -290,6 +298,7 @@ export default function Dashboard() {
 
       <div className="w-full bg-linear-to-r from-transparent via-primary to-transparent h-px mb-3"></div>
 
+      {/* toggle between grid and comparison view */}
       <div className="flex justify-end my-3">
         <Tabs
           setTab={setViewMode}

@@ -1,4 +1,5 @@
 class CrossRateService {
+  // get user saved crossrate layout
   async get(userId, token) {
     if (!userId) return null;
 
@@ -26,6 +27,7 @@ class CrossRateService {
     }
   }
 
+  // update user saved crossrate layout
   async updateSettings(userId, settings, token) {
     if (!userId) return null;
 

@@ -19,6 +19,7 @@ export default function Signup() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // on success, create account, log in and go to dashboard
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -44,7 +45,7 @@ export default function Signup() {
         const accessToken = await response.json();
         const tokenData = authService.formatTokenData(accessToken);
         setAuth(tokenData);
-        
+
         navigate("/dashboard");
       } else {
         const errorText = await response.text();

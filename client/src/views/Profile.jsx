@@ -18,6 +18,7 @@ import { IoMdMail } from "react-icons/io";
 import { CiLogin } from "react-icons/ci";
 import { IoLogIn, IoLogInSharp } from "react-icons/io5";
 
+// profile page that's accessible even to logged out users, assuming you have id url 
 export default function Profile() {
   const { id } = useParams();
   const [userInfo, setUserInfo] = useState();

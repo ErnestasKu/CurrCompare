@@ -17,8 +17,8 @@ export default function CurrencyChart({
   isComparison,
   isPercentage,
 }) {
+  // transforms data into percentage if specified in isPercentage
   const prepareComparisonData = () => {
-    // if (!currencyData?.length) return [];
     if (
       !Array.isArray(currencyData) ||
       currencyData.length === 0 ||
@@ -48,14 +48,16 @@ export default function CurrencyChart({
   };
 
   const chartData = isComparison ? prepareComparisonData() : currencyData;
-  // const chartData = currencyData;
   const isUp =
     !isComparison &&
     currencyData?.length > 1 &&
     currencyData[0].rate < currencyData[currencyData.length - 1].rate;
 
+  // up = green, therefore meant to display value, not inflation
   const chartColor = isUp ? "var(--color-good)" : "var(--color-bad)";
   const gradientId = `gradient-${selectedCurrency}`;
+
+  // colors repeat every ten values, but that amount should never be reached anyways
   const colors = [
     "#3b82f6", // blue
     "#8b5cf6", // violet
@@ -77,10 +79,12 @@ export default function CurrencyChart({
         <ResponsiveContainer
           width="100%"
           height="100%"
+          // prevents chart from spamming warnings in console
           initialDimension={{ width: 1, height: 1 }}
           className={"overflow-hidden"}
         >
           {isComparison ? (
+            // multi currency/color chart
             <LineChart data={chartData}>
               <CartesianGrid
                 strokeDasharray="3 3"
@@ -132,6 +136,7 @@ export default function CurrencyChart({
               ))}
             </LineChart>
           ) : (
+            // single currency green/red chart
             <AreaChart data={currencyData}>
               <defs>
                 <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -176,7 +181,6 @@ export default function CurrencyChart({
                   padding: "8px",
                   paddingBottom: "0px",
                 }}
-                // labelStyle={{ color: "var(--color-txt-dark)" }}
                 cursor={{ stroke: "var(--color-bg-lighter)", strokeWidth: 1 }}
               />
               <Area
@@ -187,10 +191,6 @@ export default function CurrencyChart({
                 fillOpacity={1}
                 fill={`url(#${gradientId})`}
                 animationDuration={1000}
-                // activeDot={{
-                //   r: 5,
-                //   stroke: "var(--color-bg-lighter)",
-                // }}
               />
             </AreaChart>
           )}

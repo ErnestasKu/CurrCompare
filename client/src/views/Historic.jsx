@@ -48,7 +48,10 @@ export default function Historic() {
     AiCurrency === undefined ||
     !selectedCurrencies[AiCurrency];
 
+  // fetches new data on state changes
   useEffect(() => {
+    // abort controller in case of rapid changes causing race conditions
+    // cancels previous fetch requrests if new ones come in
     const controller = new AbortController();
     const signal = controller.signal;
 
@@ -88,6 +91,7 @@ export default function Historic() {
     };
   }, [baseCurrency, selectedCurrencies, startDate, endDate]);
 
+  // get AI analysis
   const loadPredictions = async (target) => {
     try {
       setIsAiLoading(true);
@@ -147,6 +151,7 @@ export default function Historic() {
     <div className="page-default space-y-6">
       <div className="page-title">Historical Currency Data</div>
 
+      {/* currency option buttons */}
       <div className="bubble grid lg:grid-cols-4 gap-6 items-end">
         <div>
           <label className="page-label">Base Currency</label>
@@ -210,8 +215,10 @@ export default function Historic() {
         </div>
       </div>
 
+      {/* data */}
       <div className="flex w-full gap-4">
         <div className="space-y-4 w-[30%]">
+          {/* ai features only for logged in users */}
           {auth && (
             <div className="flex gap-4">
               <div className="bubble w-full h-fit">
@@ -244,63 +251,68 @@ export default function Historic() {
           <div className="page-label uppercase text-txt-dark">
             Market Performance
           </div>
+          {/* currency details */}
           <div className="grid grid-cols-1 gap-4">
             {(currencyData || []).map((group) => {
               const stats = calculateStats(group);
               const symbol = currencyList.currencies[baseCurrency].symbol;
-              return (
-                <div key={group.id} className="bubble bg-bg-dark/50">
-                  <div className="flex justify-between items-center mb-3">
-                    <div>
-                      <span className="text-xs text-txt-dark font-mono">
-                        {baseCurrency} /
-                      </span>
-                      <div className="text-xl font-bold">{group.id}</div>
-                    </div>
-                    <div
-                      className={`text-right ${stats.change >= 0 ? "text-good" : "text-bad"}`}
-                    >
-                      <div className="flex items-center gap-1 font-bold">
-                        {stats.change >= 0 ? (
-                          <LuTrendingUp />
-                        ) : (
-                          <LuTrendingDown />
-                        )}
-                        {stats.change.toFixed(2)}%
+              if (stats)
+                return (
+                  <div key={group.id} className="bubble bg-bg-dark/50">
+                    <div className="flex justify-between items-center mb-3">
+                      <div>
+                        <span className="text-xs text-txt-dark font-mono">
+                          {baseCurrency} /
+                        </span>
+                        <div className="text-xl font-bold">{group.id}</div>
                       </div>
-                      <p className="text-[10px] uppercase font-bold opacity-70">
-                        Change
-                      </p>
+                      <div
+                        className={`text-right ${stats.change >= 0 ? "text-good" : "text-bad"}`}
+                      >
+                        <div className="flex items-center gap-1 font-bold">
+                          {stats.change >= 0 ? (
+                            <LuTrendingUp />
+                          ) : (
+                            <LuTrendingDown />
+                          )}
+                          {stats.change.toFixed(2)}%
+                        </div>
+                        <p className="text-[10px] uppercase font-bold opacity-70">
+                          Change
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 border-t border-bg-border pt-3">
+                      <StatItem
+                        label="Highest"
+                        value={stats.max}
+                        symbol={symbol}
+                        color="text-good"
+                      />
+                      <StatItem
+                        label="Lowest"
+                        value={stats.min}
+                        symbol={symbol}
+                        color="text-bad"
+                      />
+                      <StatItem
+                        label="Average"
+                        value={stats.avg}
+                        symbol={symbol}
+                      />
+                      <StatItem
+                        label="Current"
+                        value={stats.current}
+                        symbol={symbol}
+                      />
+                      <StatItem
+                        label="Standard deviation"
+                        value={stats.stdDev}
+                      />
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-y-2 gap-x-4 border-t border-bg-border pt-3">
-                    <StatItem
-                      label="Highest"
-                      value={stats.max}
-                      symbol={symbol}
-                      color="text-good"
-                    />
-                    <StatItem
-                      label="Lowest"
-                      value={stats.min}
-                      symbol={symbol}
-                      color="text-bad"
-                    />
-                    <StatItem
-                      label="Average"
-                      value={stats.avg}
-                      symbol={symbol}
-                    />
-                    <StatItem
-                      label="Current"
-                      value={stats.current}
-                      symbol={symbol}
-                    />
-                    <StatItem label="Standard deviation" value={stats.stdDev} />
-                  </div>
-                </div>
-              );
+                );
             })}
             {selectedCurrencies.length === 0 && (
               <p className="text-sm text-txt-dark italic">
@@ -310,6 +322,7 @@ export default function Historic() {
           </div>
         </div>
         <div className="flex-1 space-y-4">
+          {/* graph */}
           <div className="bubble">
             <div className="flex mb-2 justify-between">
               <div className="flex items-center space-x-2">
@@ -345,6 +358,7 @@ export default function Historic() {
             </div>
           </div>
 
+          {/* ai info */}
           {isAiLoading ? (
             <div className="animate-spin mx-auto ml-8 rounded-full h-12 w-12 border-b-2 border-primary" />
           ) : aiMessage ? (
@@ -384,7 +398,7 @@ function StatItem({
       </p>
       <p className={`font-mono font-semibold ${color}`}>
         {symbol}
-        {value.toFixed(4)}
+        {value?.toFixed(4)}
       </p>
     </div>
   );

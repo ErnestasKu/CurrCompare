@@ -1,4 +1,5 @@
 class UserService {
+  // gets user info from id
   async getUserInfo(userId) {
     if (!userId) return null;
 

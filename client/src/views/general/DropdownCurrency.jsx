@@ -3,6 +3,9 @@ import { RiArrowDropDownLine } from "react-icons/ri";
 import useClickOutside from "../../utilities/useClickOutside";
 import { IoSearchOutline } from "react-icons/io5";
 
+// undefined selected = add currency button
+// disbaled = greyed out options
+// isDisables = is button functional
 export default function DropdownCurrency({
   data,
   selected,

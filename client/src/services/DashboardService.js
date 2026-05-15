@@ -1,4 +1,5 @@
 class DashboardService {
+  // get user saved dashboard layout
   async get(userId, token) {
     if (!userId) return null;
 
@@ -26,6 +27,7 @@ class DashboardService {
     }
   }
 
+  // update user saved dashboard layout
   async updateSettings(userId, settings, token) {
     if (!userId) return null;
 

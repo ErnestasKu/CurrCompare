@@ -1,4 +1,5 @@
 export default class currencyList {
+  // frankfurter supported currency list
   static currencies = {
     AED: {
       iso_code: "AED",

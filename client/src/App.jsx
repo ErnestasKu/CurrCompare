@@ -16,6 +16,7 @@ function App() {
   const { auth, setAuth } = useContext(AuthContext);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  // check if logged in before loading
   useEffect(() => {
     const verifyRefreshToken = async () => {
       try {
@@ -41,6 +42,7 @@ function App() {
     }
   }, []);
 
+  // not accessible to logged in users
   const PublicRoute = ({ children }) => {
     if (auth?.token) {
       return <Navigate to="/dashboard" replace />;
@@ -48,8 +50,9 @@ function App() {
     return children;
   };
 
+  // only accessible to admins
   const AdminRoute = ({ children }) => {
-    if (!isLoaded || auth === null) return <LoadingScreen />;
+    if (!isLoaded) return <LoadingScreen />;
 
     if (auth?.role === "Admin" && auth?.token) {
       return children;
@@ -97,6 +100,7 @@ function App() {
             />
             <Route path="/profile/:id" element={<Profile />} />
 
+            {/* default path if no page is found */}
             <Route
               path="*"
               element={

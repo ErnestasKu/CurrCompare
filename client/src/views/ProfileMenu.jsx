@@ -7,6 +7,8 @@ import { MdOutlineAccountCircle, MdOutlinePersonAddAlt } from "react-icons/md";
 import { AuthContext } from "../AuthContext";
 import authService from "../services/authenticationService";
 
+// sub menu inside header for log in/out
+// NOT related to profile page
 export default function ProfileMenu() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { auth, setAuth } = useContext(AuthContext);
@@ -50,6 +52,7 @@ export default function ProfileMenu() {
               bg-bg-lighter divide-y divide-bg-lighter3/20
               border border-bg-border rounded-xl shadow-lg p-1 space-y-1"
         >
+          {/* logged in? */}
           {auth?.token ? (
             <>
               <Link

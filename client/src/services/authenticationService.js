@@ -1,6 +1,8 @@
+// memoized token for race condition fix in dev
 let memoizedToken = null;
 
 class AuthenticationService {
+  // register and log in user
   async register(username, email, password) {
     const url = `${import.meta.env.VITE_URL}/api/auth/register`;
 
@@ -18,6 +20,7 @@ class AuthenticationService {
     return response;
   }
 
+  // log in user
   async login(email, password) {
     const url = `${import.meta.env.VITE_URL}/api/auth/login`;
 
@@ -32,6 +35,7 @@ class AuthenticationService {
     });
   }
 
+  // returns decoded JWT token
   decodeJwt(tokenString) {
     if (!tokenString) return null;
 
@@ -46,6 +50,7 @@ class AuthenticationService {
     }
   }
 
+  // tries to get access token through cookies
   async refreshToken() {
     if (memoizedToken) {
       return memoizedToken;
@@ -66,6 +71,7 @@ class AuthenticationService {
     }
   }
 
+  // saves access token data
   formatTokenData(rawToken) {
     if (!rawToken || !rawToken.accessToken) return null;
 

@@ -16,6 +16,7 @@ export default function Login() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // on success, log in and go to dashboard
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -59,7 +60,7 @@ export default function Login() {
           </div>
         )}
 
-        {/* fake input because autocomplete sucks */}
+        {/* fake hidden input because browser autocomplete sucks */}
         <input
           type="text"
           name="username"

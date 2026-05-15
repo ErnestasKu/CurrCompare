@@ -37,6 +37,8 @@ export default function Admin() {
     }
   };
 
+  // if same label selected, sort in reverse
+  // otherwise sort by new label in asc order
   const requestSort = (key) => {
     let direction = "asc";
     if (sortConfig.key === key && sortConfig.direction === "asc") {
@@ -45,6 +47,7 @@ export default function Admin() {
     setSortConfig({ key, direction });
   };
 
+  // memoize list, so it's not remade each time
   const sortedUsers = useMemo(() => {
     let sortableUsers = [...users];
     if (sortConfig.key !== null) {
@@ -69,6 +72,8 @@ export default function Admin() {
     );
   };
 
+  // adds/removes admin priveledges
+  // if I had more than 2 roles, this method would need to be scrapped
   const handleRoleChange = (userId, currentRole) => {
     const newRole = currentRole === "Admin" ? "User" : "Admin";
     actionRef.current = async () => {
@@ -99,8 +104,6 @@ export default function Admin() {
     titleRef.current = "Permanently delete this user?";
     setConfirmOpen(true);
   };
-
-  if (!users.length && !auth?.token) return <LoadingScreen />;
 
   return (
     <div className="page-default space-y-6">
@@ -133,10 +136,7 @@ export default function Admin() {
                 key={user.id}
                 className="hover:bg-bg-dark2 transition-colors group"
               >
-                <td className="p-4 text-primary font-mono">
-                  {user.username}
-                  {/* 123456789012345678901234567890 */}
-                </td>
+                <td className="p-4 text-primary font-mono">{user.username}</td>
                 <td className="p-4 font-mono">{user.email}</td>
                 <td className="p-4  font-mono">
                   {user.lastLogin

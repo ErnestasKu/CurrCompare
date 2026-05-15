@@ -1,5 +1,5 @@
 export const calculateStats = (entry) => {
-  if (!entry || entry.length === 0) return null;
+  if (!entry || !entry.data || entry.data.length === 0) return null;
 
   const rates = entry.data.map((item) => item.rate);
   const first = rates[0];
@@ -21,6 +21,8 @@ export const calculateStats = (entry) => {
   };
 };
 
+// inverts data so it show value instead of inflation
+// reformats for easy lookup with key
 export const transformCurrencyData = (currencies, data) => {
   return currencies.map((code) => ({
     id: code,
