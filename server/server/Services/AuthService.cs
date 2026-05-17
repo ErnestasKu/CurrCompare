@@ -18,7 +18,7 @@ namespace server.Services
         {
             var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             var user = await context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
-            if (user == null)
+            if (user is null)
                 throw new Exception("Email not in use");
 
             if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password)
@@ -100,9 +100,9 @@ namespace server.Services
         private string CreateToken(User user)
         {
             var claims = new List<Claim> {
-                new Claim("username", user.Username),
-                new Claim("id", user.Id.ToString()),
-                new Claim("role", user.Role.ToString())
+                new("username", user.Username),
+                new("id", user.Id.ToString()),
+                new("role", user.Role.ToString())
             };
 
             var key = new SymmetricSecurityKey(
@@ -122,12 +122,11 @@ namespace server.Services
         }
 
         // generates 32 byte random refresh token string
-        private string GenerateRefreshToken()
+        private static string GenerateRefreshToken()
         {
             var rand = new Byte[32];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(rand);
-            //return Convert.ToBase64String(rand);
             return Base64UrlTextEncoder.Encode(rand);
         }
 
@@ -139,19 +138,6 @@ namespace server.Services
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
             await context.SaveChangesAsync();
             return refreshToken;
-        }
-
-        private async Task<User?> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
-        {
-            var user = await context.Users.FindAsync(userId);
-            if (user is null ||
-                user.RefreshToken != refreshToken ||
-                user.RefreshTokenExpiryTime <= DateTime.UtcNow)
-            {
-                return null;
-            }
-
-            return user;
         }
     }
 }

@@ -57,7 +57,10 @@ namespace server.Controllers
             // verify
             var result = await authService.RefreshWithOnlyTokenAsync(refreshToken);
             if (result is null)
+            {
+                Response.Cookies.Delete("refreshToken");
                 return Unauthorized("Invalid refresh token");
+            }
 
             // update cookie, send new access token
             SetRefreshTokenCookie(result.RefreshToken);

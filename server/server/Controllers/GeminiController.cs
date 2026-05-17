@@ -17,8 +17,8 @@ namespace server.Controllers
         private readonly IMemoryCache _cache;
         public GeminiController(IConfiguration config, IMemoryCache cache)
         {
-            _apiKey = config["AppSettings:GOOGLE_API_KEY"];
-            _model = config["AppSettings:GOOGLE_API_MODEL"];
+            _apiKey = config["AppSettings:GOOGLE_API_KEY"]!;
+            _model = config["AppSettings:GOOGLE_API_MODEL"]!;
             _client = new Client(apiKey: _apiKey);
             _cache = cache;
         }
