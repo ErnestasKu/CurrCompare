@@ -35,6 +35,7 @@ function App() {
       }
     };
 
+    // auth check for dev strict mode race conditions
     if (!auth?.token) {
       verifyRefreshToken();
     } else {

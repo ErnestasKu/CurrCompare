@@ -10,7 +10,7 @@ import crossRateService from "../services/CrossRateService";
 export default function CrossRates() {
   const DEFAULT_QUOTES = ["EUR", "USD", "GBP", "JPY", "AUD", "CAD", "XAU"];
 
-  const { auth } = useContext(AuthContext);
+  const { auth, setAuth } = useContext(AuthContext);
   const [selectedCurrencies, setSelectedCurrencies] = useState(DEFAULT_QUOTES);
   const [rates, setRates] = useState({});
   const [amount, setAmount] = useState(1);
@@ -70,7 +70,7 @@ export default function CrossRates() {
           defaultAmount: finalAmount,
           selectedCurrencies: selectedCurrencies,
         },
-        auth.token,
+        auth, setAuth,
       );
     } catch (error) {
       console.error("Failed to save settings", error);
@@ -86,7 +86,7 @@ export default function CrossRates() {
           defaultAmount: null,
           selectedCurrencies: [],
         },
-        auth.token,
+        auth, setAuth,
       );
       handleDefaultSettings();
     } catch (error) {
@@ -110,7 +110,7 @@ export default function CrossRates() {
     const fetchUserSettings = async () => {
       if (auth?.id && auth?.token) {
         try {
-          const settings = await crossRateService.get(auth.id, auth.token);
+          const settings = await crossRateService.get(auth.id, auth, setAuth);
 
           if (settings) {
             if (settings.defaultAmount) {

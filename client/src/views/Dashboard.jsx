@@ -22,7 +22,7 @@ export default function Dashboard() {
   const DEFAULT_BASE = "EUR";
   const MAX_CURRENCIES = 10;
 
-  const { auth } = useContext(AuthContext);
+  const { auth, setAuth } = useContext(AuthContext);
   const [baseCurrency, setBaseCurrency] = useState(DEFAULT_BASE);
   const [endDate, setEndDate] = useState();
   const [viewMode, setViewMode] = useState(1);
@@ -115,7 +115,7 @@ export default function Dashboard() {
           baseCurrency: baseCurrency,
           watchlist: selectedCurrencies,
         },
-        auth.token,
+        auth, setAuth,
       );
     } catch (error) {
       console.error("Failed to save settings", error);
@@ -131,7 +131,7 @@ export default function Dashboard() {
           baseCurrency: null,
           watchlist: [],
         },
-        auth.token,
+        auth, setAuth,
       );
       handleDefaultSettings();
     } catch (error) {
@@ -158,7 +158,7 @@ export default function Dashboard() {
           current: stats.current,
         },
       };
-      const response = await aiService.getAiForecast(payload, auth.token);
+      const response = await aiService.getAiForecast(payload, auth, setAuth);
       if (response?.prediction) {
         setAiMessage(response.prediction);
         setLastFetchedCurrency(target);
@@ -215,7 +215,7 @@ export default function Dashboard() {
     const fetchUserSettings = async () => {
       if (auth?.id && auth?.token) {
         try {
-          const settings = await dashboardService.get(auth.id, auth.token);
+          const settings = await dashboardService.get(auth.id, auth, setAuth);
 
           if (settings) {
             if (settings.baseCurrency) {

@@ -45,6 +45,7 @@ namespace server.Controllers
             }
         }
 
+        // get a new access token from cookies
         [HttpPost(("refresh-token"))]
         public async Task<ActionResult> RefreshToken()
         {

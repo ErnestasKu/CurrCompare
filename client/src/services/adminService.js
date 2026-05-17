@@ -1,17 +1,19 @@
+import { authFetch } from "../utilities/authFetch";
+
 // Admin only functions
 class AdminService {
   //  fetches a list of every user
-  async getUsers(token) {
+  async getUsers(auth, setAuth) {
     const url = `${import.meta.env.VITE_URL}/api/admin/users`;
 
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    const response = await authFetch(
+      url,
+      {
+        method: "GET",
       },
-      credentials: "include",
-    });
+      auth,
+      setAuth,
+    );
 
     if (!response.ok) {
       throw new Error(`Error: ${response.status}`);
@@ -21,32 +23,32 @@ class AdminService {
   }
 
   // sets role for selected user
-  async updateRole(id, newRole, token) {
+  async updateRole(id, newRole, auth, setAuth) {
     const url = `${import.meta.env.VITE_URL}/api/admin/users/${id}/role`;
 
-    return await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    return await authFetch(
+      url,
+      {
+        method: "PUT",
+        body: JSON.stringify(newRole),
       },
-      credentials: "include",
-      body: JSON.stringify(newRole),
-    });
+      auth,
+      setAuth,
+    );
   }
 
   // deletes selected user and their associated data
-  async deleteUser(id, token) {
+  async deleteUser(id, auth, setAuth) {
     const url = `${import.meta.env.VITE_URL}/api/admin/users/${id}`;
 
-    return await fetch(url, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
+    return await authFetch(
+      url,
+      {
+        method: "DELETE",
       },
-      credentials: "include",
-    });
+      auth,
+      setAuth,
+    );
   }
 }
 

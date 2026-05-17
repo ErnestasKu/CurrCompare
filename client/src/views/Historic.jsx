@@ -28,7 +28,7 @@ import { AuthContext } from "../AuthContext";
 export default function Historic() {
   const MAX_CURRENCIES = 7;
 
-  const { auth } = useContext(AuthContext);
+  const { auth, setAuth } = useContext(AuthContext);
   const [baseCurrency, setBaseCurrency] = useState("EUR");
   const [selectedCurrencies, setSelectedCurrencies] = useState(["USD"]);
 
@@ -110,7 +110,7 @@ export default function Historic() {
           current: stats.current,
         },
       };
-      const response = await aiService.getAiHistorical(payload, auth.token);
+      const response = await aiService.getAiHistorical(payload, auth, setAuth);
       if (response?.historical) {
         setAiMessage(response.historical);
         setLastFetchedCurrency(target);

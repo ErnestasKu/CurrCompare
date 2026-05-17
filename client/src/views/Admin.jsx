@@ -12,7 +12,7 @@ import { AuthContext } from "../AuthContext";
 import MessageConfirmation from "./general/MessageConfirmation";
 
 export default function Admin() {
-  const { auth } = useContext(AuthContext);
+  const { auth, setAuth } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState({
@@ -30,7 +30,7 @@ export default function Admin() {
   const fetchUsers = async () => {
     if (!auth?.token) return;
     try {
-      const data = await adminService.getUsers(auth.token);
+      const data = await adminService.getUsers(auth, setAuth);
       setUsers(data.filter((u) => u.id !== auth.id));
     } catch (err) {
       console.error("Failed to fetch users", err);
@@ -78,7 +78,7 @@ export default function Admin() {
     const newRole = currentRole === "Admin" ? "User" : "Admin";
     actionRef.current = async () => {
       try {
-        await adminService.updateRole(userId, newRole, auth.token);
+        await adminService.updateRole(userId, newRole, auth, setAuth);
         setUsers((prev) =>
           prev.map((u) => (u.id === userId ? { ...u, role: newRole } : u)),
         );
@@ -94,7 +94,7 @@ export default function Admin() {
   const handleDelete = (userId) => {
     actionRef.current = async () => {
       try {
-        await adminService.deleteUser(userId, auth.token);
+        await adminService.deleteUser(userId, auth, setAuth);
         setUsers(users.filter((u) => u.id !== userId));
         setConfirmOpen(false);
       } catch (err) {

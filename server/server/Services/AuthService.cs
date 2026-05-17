@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using server.Data;
@@ -38,6 +39,8 @@ namespace server.Services
                 RefreshToken = await GenerateSaveRefreshTokenAsync(user)
             };
         }
+
+        // clear user token data in db
         public async Task RevokeTokenAsync(string refreshToken)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
@@ -49,6 +52,7 @@ namespace server.Services
             await context.SaveChangesAsync();
         }
 
+        // get new token response (access + refresh) from refresh token
         public async Task<TokenResponseDto?> RefreshWithOnlyTokenAsync(string refreshToken)
         {
             var user = await context.Users.FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
@@ -92,6 +96,7 @@ namespace server.Services
             return user;
         }
 
+        // creates a new access token
         private string CreateToken(User user)
         {
             var claims = new List<Claim> {
@@ -109,21 +114,24 @@ namespace server.Services
                 issuer: configuration.GetValue<string>("AppSettings:Issuer"),
                 audience: configuration.GetValue<string>("AppSettings:Audience"),
                 claims: claims,
-                expires: DateTime.UtcNow.AddDays(1),
+                expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds
                 );
 
             return new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
         }
 
+        // generates 32 byte random refresh token string
         private string GenerateRefreshToken()
         {
             var rand = new Byte[32];
             using var rng = RandomNumberGenerator.Create();
             rng.GetBytes(rand);
-            return Convert.ToBase64String(rand);
+            //return Convert.ToBase64String(rand);
+            return Base64UrlTextEncoder.Encode(rand);
         }
 
+        // create + save refresh token to db
         private async Task<string> GenerateSaveRefreshTokenAsync(User user)
         {
             var refreshToken = GenerateRefreshToken();

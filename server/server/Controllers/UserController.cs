@@ -9,7 +9,7 @@ namespace server.Controllers
     [ApiController]
     public class UserController(AppDbContext context) : ControllerBase
     {
-        // returns all users
+        // returns user public info
         [HttpGet("{userId:guid}")]
         public async Task<ActionResult<UserInfoDto>> GetUserInfo(Guid userId)
         {

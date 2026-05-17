@@ -1,19 +1,21 @@
+import { authFetch } from "../utilities/authFetch";
+
 class CrossRateService {
   // get user saved crossrate layout
-  async get(userId, token) {
+  async get(userId, auth, setAuth) {
     if (!userId) return null;
 
     const url = `${import.meta.env.VITE_URL}/api/crossrate/settings/${userId}`;
 
     try {
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await authFetch(
+        url,
+        {
+          method: "GET",
         },
-        credentials: "include",
-      });
+        auth,
+        setAuth,
+      );
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
@@ -28,21 +30,21 @@ class CrossRateService {
   }
 
   // update user saved crossrate layout
-  async updateSettings(userId, settings, token) {
+  async updateSettings(userId, settings, auth, setAuth) {
     if (!userId) return null;
 
     const url = `${import.meta.env.VITE_URL}/api/crossrate/settings/${userId}`;
 
     try {
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const response = await authFetch(
+        url,
+        {
+          method: "PUT",
+          body: JSON.stringify(settings),
         },
-        body: JSON.stringify(settings),
-        credentials: "include",
-      });
+        auth,
+        setAuth,
+      );
 
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);

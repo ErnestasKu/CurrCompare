@@ -33,7 +33,7 @@ namespace server.Controllers
             return Ok(settingsDto);
         }
 
-        // updates/creates new crossrates settings
+        // updates/creates new cross rates settings
         [HttpPut("settings/{userId:guid}")]
         public async Task<ActionResult> UpdateSettings(Guid userId, [FromBody] CrossRateSettingsDto crossRateSettingsDto)
         {
