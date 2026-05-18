@@ -18,7 +18,7 @@ import {
 import aiService from "../services/AiService";
 
 export default function Dashboard() {
-  const DEFAULT_QUOTES = ["USD", "GBP", "JPY", "CHF", "AUD"];
+  const DEFAULT_QUOTES = ["USD", "GBP", "CAD", "CHF", "AUD"];
   const DEFAULT_BASE = "EUR";
   const MAX_CURRENCIES = 10;
 
@@ -36,7 +36,7 @@ export default function Dashboard() {
   const [aiMessage, setAiMessage] = useState();
   const [lastFetchedCurrency, setLastFetchedCurrency] = useState("");
 
-  const today = format(subDays(new Date(), 1), "yyyy-MM-dd");
+  const today = format(new Date(), "yyyy-MM-dd");
   const startDate = format(subDays(today, 30), "yyyy-MM-dd");
 
   function handleSelectBase(code) {
@@ -115,7 +115,8 @@ export default function Dashboard() {
           baseCurrency: baseCurrency,
           watchlist: selectedCurrencies,
         },
-        auth, setAuth,
+        auth,
+        setAuth,
       );
     } catch (error) {
       console.error("Failed to save settings", error);
@@ -131,7 +132,8 @@ export default function Dashboard() {
           baseCurrency: null,
           watchlist: [],
         },
-        auth, setAuth,
+        auth,
+        setAuth,
       );
       handleDefaultSettings();
     } catch (error) {

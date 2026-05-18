@@ -16,21 +16,6 @@ namespace server.Controllers
             _cache = cache;
         }
 
-        private DateTimeOffset GetCacheExpiration()
-        {
-            // frankfurter updates daily around 16:00 CET
-            var CET = TimeZoneInfo.FindSystemTimeZoneById("Europe/Berlin");
-            var nowInCET = TimeZoneInfo.ConvertTime(DateTime.UtcNow, CET);
-
-            var nextUpdate = nowInCET.Date.AddHours(16);
-
-            // if past 16:00 today, the next update is tomorrow
-            if (nowInCET >= nextUpdate)
-                nextUpdate = nextUpdate.AddDays(1);
-
-            return TimeZoneInfo.ConvertTimeToUtc(nextUpdate, CET);
-        }
-
         [HttpGet("currency-data")]
         public async Task<IActionResult> GetCurrencyData(
             [FromQuery] string? baseCode,
@@ -73,7 +58,6 @@ namespace server.Controllers
 
                 var jsonData = await response.Content.ReadAsStringAsync();
                 var cacheOptions = new MemoryCacheEntryOptions()
-                    .SetAbsoluteExpiration(GetCacheExpiration())
                     .SetSlidingExpiration(TimeSpan.FromHours(1));
 
                 _cache.Set(cacheKey, jsonData, cacheOptions);

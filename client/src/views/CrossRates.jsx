@@ -6,9 +6,10 @@ import { FaArrowDown, FaArrowUp, FaTimes, FaUndo } from "react-icons/fa";
 import { AuthContext } from "../AuthContext";
 import { LuSave, LuTrash2 } from "react-icons/lu";
 import crossRateService from "../services/CrossRateService";
+import { format } from "date-fns";
 
 export default function CrossRates() {
-  const DEFAULT_QUOTES = ["EUR", "USD", "GBP", "JPY", "AUD", "CAD", "XAU"];
+  const DEFAULT_QUOTES = ["EUR", "USD", "GBP", "AUD", "CAD", "XAU"];
 
   const { auth, setAuth } = useContext(AuthContext);
   const [selectedCurrencies, setSelectedCurrencies] = useState(DEFAULT_QUOTES);
@@ -19,8 +20,9 @@ export default function CrossRates() {
   useEffect(() => {
     async function fetchMatrixData() {
       try {
+        const today = format(new Date(), "yyyy-MM-dd");
         const cs = new CurrencyService();
-        const data = await cs.getCurrencyHistorical();
+        const data = await cs.getCurrencyHistorical(undefined, undefined, today, today);
 
         const ratesMap = data.reduce(
           (acc, item) => {
@@ -70,7 +72,8 @@ export default function CrossRates() {
           defaultAmount: finalAmount,
           selectedCurrencies: selectedCurrencies,
         },
-        auth, setAuth,
+        auth,
+        setAuth,
       );
     } catch (error) {
       console.error("Failed to save settings", error);
@@ -86,7 +89,8 @@ export default function CrossRates() {
           defaultAmount: null,
           selectedCurrencies: [],
         },
-        auth, setAuth,
+        auth,
+        setAuth,
       );
       handleDefaultSettings();
     } catch (error) {
