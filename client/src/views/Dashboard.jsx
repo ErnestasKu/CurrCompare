@@ -30,6 +30,7 @@ export default function Dashboard() {
 
   const [selectedCurrencies, setSelectedCurrencies] = useState(DEFAULT_QUOTES);
   const [currencyData, setCurrencyData] = useState();
+  const [currencyLoading, setCurrencyLoading] = useState(false);
 
   const [AiCurrency, setAiCurrency] = useState(0);
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -180,6 +181,8 @@ export default function Dashboard() {
     const signal = controller.signal;
 
     async function GetHistorical() {
+      setCurrencyLoading(true);
+
       try {
         const cs = new CurrencyService();
         const currencyString = selectedCurrencies.join(",");
@@ -203,6 +206,10 @@ export default function Dashboard() {
           console.log("Fetch aborted");
         } else {
           console.error("Failed to fetch history:", error);
+        }
+      } finally {
+        if (!controller.signal.aborted) {
+          setCurrencyLoading(false);
         }
       }
     }
@@ -341,6 +348,7 @@ export default function Dashboard() {
           setAiCurrency={setAiCurrency}
           isAiLoading={isAiLoading}
           lastFetchedCurrency={lastFetchedCurrency}
+          currencyLoading={currencyLoading}
         />
       )}
     </div>

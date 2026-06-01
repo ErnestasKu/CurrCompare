@@ -19,11 +19,11 @@ namespace server.Services
             var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             var user = await context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail);
             if (user is null)
-                throw new Exception("Email not in use");
+                return null;
 
             if (new PasswordHasher<User>().VerifyHashedPassword(user, user.PasswordHash, request.Password)
                 == PasswordVerificationResult.Failed)
-                throw new Exception("Incorrect password.");
+                return null;
 
             user.LastLogin = DateTime.UtcNow;
             await context.SaveChangesAsync();
@@ -70,7 +70,7 @@ namespace server.Services
                 throw new Exception("Username is required");
 
             if (await context.Users.AnyAsync(u => u.Email == normalizedEmail))
-                throw new Exception("Email already exists");
+                throw new Exception("Email already in use");
 
             var user = new User();
             var hashedPassword = new PasswordHasher<User>()

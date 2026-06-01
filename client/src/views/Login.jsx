@@ -11,6 +11,7 @@ export default function Login() {
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,8 +19,9 @@ export default function Login() {
 
   // on success, log in and go to dashboard
   const handleSubmit = async (e) => {
+    setLoading(true);
     e.preventDefault();
-    setError("");
+    let errorText = "";
 
     try {
       const response = await authService.login(
@@ -34,11 +36,13 @@ export default function Login() {
 
         navigate("/dashboard");
       } else {
-        const errorText = await response.text();
-        setError(errorText || "Login failed");
+        errorText = "Invalid email or password";
       }
     } catch (err) {
-      setError("Could not connect to the server");
+      errorText = "Could not connect to the server";
+    } finally {
+      setError(errorText);
+      setLoading(false);
     }
   };
 
@@ -96,8 +100,9 @@ export default function Login() {
         </div>
 
         <button
+          disabled={loading}
           type="submit"
-          className="mt-2 bg-primary hover:bg-primary-hover text-bg-main font-bold p-3 rounded-xl shadow-md shadow-black"
+          className="mt-2 bg-primary hover:bg-primary-hover disabled:bg-primary-hover text-bg-main font-bold p-3 rounded-xl shadow-md shadow-black"
         >
           Log in
         </button>

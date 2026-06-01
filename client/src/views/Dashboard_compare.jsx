@@ -19,6 +19,7 @@ export default function Dashboard_compare({
   setAiCurrency,
   isAiLoading,
   lastFetchedCurrency,
+  currencyLoading,
 }) {
   const isAiDisabled =
     isAiLoading ||
@@ -58,6 +59,7 @@ export default function Dashboard_compare({
             isComparison={true}
             currencyData={currencyData}
             isPercentage={isPercent}
+            currencyLoading={currencyLoading}
           />
         </div>
       </div>

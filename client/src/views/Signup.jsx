@@ -14,6 +14,7 @@ export default function Signup() {
   const [error, setError] = useState("");
   const trimmedUsername = formData.username.trim();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -35,6 +36,7 @@ export default function Signup() {
     }
 
     try {
+      setLoading(true);
       const response = await authService.register(
         trimmedUsername,
         formData.email,
@@ -53,6 +55,8 @@ export default function Signup() {
       }
     } catch (err) {
       setError("Could not connect to the server");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -133,8 +137,9 @@ export default function Signup() {
         </div>
 
         <button
+          disabled={loading}
           type="submit"
-          className="mt-2 bg-primary hover:bg-primary-hover text-bg-main font-bold p-3 rounded-xl shadow-md shadow-black"
+          className="mt-2 bg-primary hover:bg-primary-hover disabled:bg-primary-hover text-bg-main font-bold p-3 rounded-xl shadow-md shadow-black"
         >
           Continue
         </button>

@@ -16,6 +16,7 @@ export default function CurrencyChart({
   currencyData,
   isComparison,
   isPercentage,
+  currencyLoading = false,
 }) {
   // transforms data into percentage if specified in isPercentage
   const prepareComparisonData = () => {
@@ -72,7 +73,7 @@ export default function CurrencyChart({
   ];
 
   return (
-    <div className="bg-bg-dark mx-auto w-full h-full overflow-auto rounded-xl">
+    <div className="bg-bg-dark mx-auto w-full h-full overflow-auto rounded-xl relative flex">
       {(isComparison
         ? currencyData?.length > 0
         : selectedCurrency && currencyData?.length > 0) && (
@@ -195,6 +196,12 @@ export default function CurrencyChart({
             </AreaChart>
           )}
         </ResponsiveContainer>
+      )}
+
+      {currencyLoading && (
+        <div className="w-full h-full bg-black/50 rounded-xl absolute flex items-center justify-center pointer-events-none">
+          <div className="animate-spin rounded-full h-24 w-24 border-b-3 border-primary" />
+        </div>
       )}
     </div>
   );

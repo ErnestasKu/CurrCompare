@@ -31,6 +31,7 @@ export default function Historic() {
   const { auth, setAuth } = useContext(AuthContext);
   const [baseCurrency, setBaseCurrency] = useState("EUR");
   const [selectedCurrencies, setSelectedCurrencies] = useState(["USD"]);
+  const [currencyLoading, setCurrencyLoading] = useState(false);
 
   const [startDate, setStartDate] = useState(subDays(new Date(), 30));
   const [endDate, setEndDate] = useState(new Date());
@@ -46,7 +47,8 @@ export default function Historic() {
     isAiLoading ||
     AiCurrency === null ||
     AiCurrency === undefined ||
-    !selectedCurrencies[AiCurrency];
+    !selectedCurrencies[AiCurrency] ||
+    currencyLoading;
 
   // fetches new data on state changes
   useEffect(() => {
@@ -56,8 +58,7 @@ export default function Historic() {
     const signal = controller.signal;
 
     async function GetHistorical() {
-      if (!baseCurrency || !selectedCurrencies || !startDate || !endDate)
-        return;
+      setCurrencyLoading(true);
 
       try {
         const cs = new CurrencyService();
@@ -83,9 +84,14 @@ export default function Historic() {
         } else {
           console.error("Failed to fetch history:", error);
         }
+      } finally {
+        if (!controller.signal.aborted) {
+          setCurrencyLoading(false);
+        }
       }
     }
-    GetHistorical();
+    if (baseCurrency && selectedCurrencies && startDate && endDate)
+      GetHistorical();
     return () => {
       controller.abort();
     };
@@ -354,6 +360,7 @@ export default function Historic() {
                 selectedCurrency={selectedCurrencies}
                 currencyData={currencyData}
                 isPercentage={isPercent}
+                currencyLoading={currencyLoading}
               />
             </div>
           </div>
